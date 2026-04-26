@@ -2426,20 +2426,18 @@ export default function App() {
                 }}
                 className={`
                   relative flex items-center justify-center h-full w-full
-                  ${(isLava || tile.type === 'magma' || tile.type === 'wall') ? 'bg-red-700' : tile.type === 'hole' ? 'bg-black' : 'bg-amber-900'}
-                  ${isMoveSelectable ? 'ring-2 ring-inset ring-yellow-300 z-10 cursor-pointer shadow-[0_0_8px_#FFD600] brightness-110' : ''}
+                  ${isMoveSelectable ? 'ring-2 ring-inset ring-[#FFEB3B] z-10 cursor-pointer shadow-[0_0_8px_#FFD600] brightness-110' : ''}
                   ${isTechSelectable ? 'ring-2 ring-inset ring-cyan-400 z-10 cursor-crosshair' : ''}
-                  ${isTankSelectable ? 'ring-2 ring-inset ring-white z-10 cursor-pointer animate-pulse' : ''}
+                  ${isTankSelectable ? 'ring-2 ring-inset ring-white z-10 cursor-pointer' : ''}
                   ${isRobotConvertSelectable ? 'cursor-pointer' : ''}
                   ${isParkourTarget ? 'ring-2 ring-inset ring-lime-400 z-10 cursor-pointer brightness-125' : ''}
                   border-[0.5px] border-black/10
                 `}
-                style={{ imageRendering: 'pixelated' }}
+                style={{
+                  imageRendering: 'pixelated',
+                  backgroundColor: (isLava || tile.type === 'magma' || tile.type === 'wall') ? '#B71C1C' : tile.type === 'hole' ? '#000000' : '#795548',
+                }}
               >
-                {/* Base rock texture for all non-lava, non-wall, non-hole tiles */}
-                {!isLava && tile.type !== 'magma' && tile.type !== 'wall' && tile.type !== 'hole' && (
-                  <div className="absolute inset-0"><PixelRock /></div>
-                )}
                 {/* Visual Elements */}
                 {(isLava || tile.type === 'magma' || tile.type === 'wall') && <PixelMagma />}
                 {isRobotConvertSelectable && (
@@ -2447,6 +2445,7 @@ export default function App() {
                        style={{ border: '2px solid #fb923c', boxShadow: 'inset 0 0 10px #fb923c, 0 0 6px #fb923c' }} />
                 )}
                 {tile.type === 'hole' && <PixelHole />}
+                {(tile.type === 'road' || tile.type === 'hidden_tank') && !isLava && <PixelRock />}
                 {tile.type === 'hidden_tank' && !isLava && selectedJob === 'geologist' && (
                   <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
                     <div className="w-2 h-2 rounded-full bg-[#F9A825] opacity-80 animate-pulse shadow-[0_0_4px_#F9A825]" />
