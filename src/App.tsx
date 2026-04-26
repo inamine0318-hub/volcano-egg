@@ -2351,6 +2351,10 @@ export default function App() {
           }}
         >
           {tiles.map((tile) => {
+            if (!tile || !tile.type) {
+              console.warn(`[TileRender] undefined tile at index`, tile);
+              return null;
+            }
             const isLava = tile.y >= lavaLevel;
             const isMoveSelectable = stepsRemaining > 0 && !isMoving &&
               Math.abs(tile.x - playerPos.x) + Math.abs(tile.y - playerPos.y) === 1 &&
@@ -2422,16 +2426,20 @@ export default function App() {
                 }}
                 className={`
                   relative flex items-center justify-center h-full w-full
-                  ${(isLava || tile.type === 'magma' || tile.type === 'wall') ? 'bg-[#FF0000]' : (tile.type === 'hole' ? 'bg-[#000]' : 'bg-[#795548]')}
-                  ${isMoveSelectable ? 'ring-2 ring-inset ring-[#FFEB3B] z-10 cursor-pointer shadow-[0_0_8px_#FFD600] brightness-110' : ''}
-                  ${isTechSelectable ? 'ring-2 ring-inset ring-cyan-400 z-10 cursor-crosshair bg-cyan-900/30' : ''}
-                  ${isTankSelectable ? 'ring-2 ring-inset ring-white z-10 cursor-pointer animate-pulse bg-white/20' : ''}
+                  ${(isLava || tile.type === 'magma' || tile.type === 'wall') ? 'bg-red-700' : tile.type === 'hole' ? 'bg-black' : 'bg-amber-900'}
+                  ${isMoveSelectable ? 'ring-2 ring-inset ring-yellow-300 z-10 cursor-pointer shadow-[0_0_8px_#FFD600] brightness-110' : ''}
+                  ${isTechSelectable ? 'ring-2 ring-inset ring-cyan-400 z-10 cursor-crosshair' : ''}
+                  ${isTankSelectable ? 'ring-2 ring-inset ring-white z-10 cursor-pointer animate-pulse' : ''}
                   ${isRobotConvertSelectable ? 'cursor-pointer' : ''}
                   ${isParkourTarget ? 'ring-2 ring-inset ring-lime-400 z-10 cursor-pointer brightness-125' : ''}
                   border-[0.5px] border-black/10
                 `}
                 style={{ imageRendering: 'pixelated' }}
               >
+                {/* Base rock texture for all non-lava, non-wall, non-hole tiles */}
+                {!isLava && tile.type !== 'magma' && tile.type !== 'wall' && tile.type !== 'hole' && (
+                  <div className="absolute inset-0"><PixelRock /></div>
+                )}
                 {/* Visual Elements */}
                 {(isLava || tile.type === 'magma' || tile.type === 'wall') && <PixelMagma />}
                 {isRobotConvertSelectable && (
@@ -2439,7 +2447,6 @@ export default function App() {
                        style={{ border: '2px solid #fb923c', boxShadow: 'inset 0 0 10px #fb923c, 0 0 6px #fb923c' }} />
                 )}
                 {tile.type === 'hole' && <PixelHole />}
-                {(tile.type === 'road' || tile.type === 'hidden_tank') && !isLava && <PixelRock />}
                 {tile.type === 'hidden_tank' && !isLava && selectedJob === 'geologist' && (
                   <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
                     <div className="w-2 h-2 rounded-full bg-[#F9A825] opacity-80 animate-pulse shadow-[0_0_4px_#F9A825]" />
