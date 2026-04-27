@@ -651,13 +651,7 @@ const PixelDocument = ({ size = "w-full h-full" }: { size?: string }) => (
 
 const PixelRock = React.memo(function PixelRock() {
   return (
-    <svg
-      viewBox="0 0 16 16"
-      style={{
-        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-        imageRendering: 'pixelated', pointerEvents: 'none', display: 'block',
-      }}
-    >
+    <svg viewBox="0 0 16 16" className="w-full h-full" style={{ imageRendering: 'pixelated' }}>
       <rect width="16" height="16" fill="#795548" />
       <rect x="2" y="3" width="2" height="1" fill="#5D4037" />
       <rect x="10" y="5" width="3" height="1" fill="#3E2723" />
@@ -983,7 +977,6 @@ export default function App() {
   const [treasureHunterJumpUses, setTreasureHunterJumpUses] = useState(3);
   const [geologistScanUsed, setGeologistScanUsed] = useState(false);
 
-
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
 
@@ -1005,7 +998,6 @@ export default function App() {
     setRobotJumpUses(2);
     setTreasureHunterJumpUses(3);
     setGeologistScanUsed(false);
-    setKnightJumpUses(3);
 
     let startHp = BASE_INITIAL_HP + (persistent.upgrades.hp * 10);
     let startTanks = 3 + Math.floor(persistent.upgrades.tanks / 2);
@@ -1430,19 +1422,17 @@ export default function App() {
       setScoutFixedRoll(false);
       addLog('登山家：精密スキャン（出目を6に固定）', 'success');
     }
+    setVisualRoll(rawRoll);
     setIsRolling(false);
-
+    
     // Calculate Bonuses
     let jobBonus = selectedJob === 'scout' ? 1 : 0;
-
+    
     // Type Penalty: -1 die step per unique sub-item type (excluding egg)
     const typePenaltyVal = uniqueSubItemTypes;
 
     // Final Calculation: min 1 guaranteed
     const finalSteps = Math.max(1, rawRoll + jobBonus - typePenaltyVal);
-
-    // Show die face matching actual movable steps (capped at 6 for emoji range)
-    setVisualRoll(Math.min(6, finalSteps));
 
     setLastRollDetails({
       raw: rawRoll,
