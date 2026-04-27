@@ -195,7 +195,7 @@ interface LogEntry {
   type: 'info' | 'danger' | 'success' | 'warning';
 }
 
-type JobType = 'leader' | 'tech' | 'carrier' | 'scout' | 'robot' | 'treasure_hunter' | 'geologist';
+type JobType = 'leader' | 'tech' | 'carrier' | 'scout' | 'robot' | 'treasure_hunter' | 'geologist' | 'knight';
 type DifficultyType = 'EASY' | 'NORMAL' | 'HARD' | 'LEGEND';
 
 interface JobDefinition {
@@ -295,6 +295,18 @@ const JOBS: JobDefinition[] = [
     skillName: '地層スキャン',
     skillText: '全マップの隠しアイテムを即座に開示する。1回限り。',
     color: '#F9A825'
+  },
+  {
+    id: 'knight',
+    name: 'チェスナイト',
+    role: 'L字跳躍 / 障害物踏破',
+    description: '漆黒のチェスの騎士駒が突如として動き出した。論理を超えたL字跳躍で火山島を踏破する。',
+    difficulty: 3,
+    ability: 'L-Jump（3回）: チェスのナイトのL字動作で壁・溶岩・穴を飛び越えて着地',
+    recommend: '壁や溶岩をショートカットして最短ルートを狙いたい人向け',
+    skillName: 'L-Jump',
+    skillText: 'チェスのナイトのL字移動で任意のマスへ跳躍。障害物を無視する。3回限り。',
+    color: '#37474F'
   },
 ];
 
@@ -523,6 +535,36 @@ const PixelCharacter = React.memo(function PixelCharacter({
             <rect x="9" y="15" width="3" height="1" fill="#1C1008" />
             <rect x="5" y="15" width="1" height="1" fill="#3A2010" />
             <rect x="10" y="15" width="1" height="1" fill="#3A2010" />
+          </g>
+        ) : jobId === 'knight' ? (
+          <g>
+            {/* ── CHESS KNIGHT PIECE — pure black silhouette ── */}
+            {/* ear */}
+            <rect x="5" y="0" width="4" height="1" fill="#111111" />
+            {/* mane top */}
+            <rect x="4" y="1" width="6" height="1" fill="#111111" />
+            {/* mane body */}
+            <rect x="3" y="2" width="7" height="1" fill="#111111" />
+            {/* upper head */}
+            <rect x="3" y="3" width="9" height="1" fill="#111111" />
+            {/* wide head */}
+            <rect x="2" y="4" width="10" height="1" fill="#111111" />
+            {/* face / snout */}
+            <rect x="2" y="5" width="9" height="1" fill="#111111" />
+            {/* lower face */}
+            <rect x="2" y="6" width="8" height="1" fill="#111111" />
+            {/* chin */}
+            <rect x="3" y="7" width="6" height="1" fill="#111111" />
+            {/* neck */}
+            <rect x="4" y="8" width="6" height="1" fill="#111111" />
+            {/* upper body */}
+            <rect x="4" y="9" width="7" height="2" fill="#111111" />
+            {/* body */}
+            <rect x="3" y="11" width="9" height="1" fill="#111111" />
+            {/* pedestal */}
+            <rect x="3" y="12" width="10" height="2" fill="#111111" />
+            {/* base */}
+            <rect x="2" y="14" width="12" height="2" fill="#111111" />
           </g>
         ) : jobColor === '#90A4AE' ? (
           <g>
@@ -976,6 +1018,7 @@ export default function App() {
   const [isRobotConvertActive, setIsRobotConvertActive] = useState(false);
   const [treasureHunterJumpUses, setTreasureHunterJumpUses] = useState(3);
   const [geologistScanUsed, setGeologistScanUsed] = useState(false);
+  const [knightJumpUses, setKnightJumpUses] = useState(3);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
@@ -998,6 +1041,7 @@ export default function App() {
     setRobotJumpUses(2);
     setTreasureHunterJumpUses(3);
     setGeologistScanUsed(false);
+    setKnightJumpUses(3);
 
     let startHp = BASE_INITIAL_HP + (persistent.upgrades.hp * 10);
     let startTanks = 3 + Math.floor(persistent.upgrades.tanks / 2);
@@ -2402,6 +2446,16 @@ export default function App() {
               Math.abs(tile.x - playerPos.x) + Math.abs(tile.y - playerPos.y) === 1 &&
               tile.type === 'road' && !isLava;
 
+            // Knight L-Jump target: chess knight L-shape move, jumps over any obstacle
+            const isKnightJumpTarget = (() => {
+              if (selectedJob !== 'knight' || knightJumpUses <= 0 || stepsRemaining <= 0 || isMoving || isGameOver) return false;
+              const dx = tile.x - playerPos.x;
+              const dy = tile.y - playerPos.y;
+              const isL = (Math.abs(dx) === 1 && Math.abs(dy) === 2) || (Math.abs(dx) === 2 && Math.abs(dy) === 1);
+              if (!isL) return false;
+              return tile.type !== 'wall' && tile.type !== 'hole' && tile.type !== 'magma' && tile.y < lavaLevel;
+            })();
+
             // Parkour jump target: 2 tiles ahead in cardinal direction, middle is blocked
             const isParkourTarget = (() => {
               if (selectedJob !== 'treasure_hunter' || treasureHunterJumpUses <= 0 || stepsRemaining <= 0 || isMoving || isGameOver) return false;
@@ -2439,6 +2493,12 @@ export default function App() {
                     const sdx = Math.sign(tile.x - playerPos.x);
                     const sdy = Math.sign(tile.y - playerPos.y);
                     moveToOneStep(sdx, sdy);
+                  } else if (isKnightJumpTarget) {
+                    setIsMoving(true);
+                    setPlayerPos({ x: tile.x, y: tile.y });
+                    setKnightJumpUses(prev => prev - 1);
+                    setStepsRemaining(prev => prev - 1);
+                    setTimeout(() => { setIsMoving(false); handleTileEffect(tile.x, tile.y); }, 150);
                   }
                 }}
                 onTouchEnd={(e) => {
@@ -2454,6 +2514,13 @@ export default function App() {
                     const sdx = Math.sign(tile.x - playerPos.x);
                     const sdy = Math.sign(tile.y - playerPos.y);
                     moveToOneStep(sdx, sdy);
+                  } else if (isKnightJumpTarget) {
+                    e.preventDefault();
+                    setIsMoving(true);
+                    setPlayerPos({ x: tile.x, y: tile.y });
+                    setKnightJumpUses(prev => prev - 1);
+                    setStepsRemaining(prev => prev - 1);
+                    setTimeout(() => { setIsMoving(false); handleTileEffect(tile.x, tile.y); }, 150);
                   }
                 }}
                 className={`
@@ -2463,6 +2530,7 @@ export default function App() {
                   ${isTankSelectable ? 'ring-2 ring-inset ring-white z-10 cursor-pointer' : ''}
                   ${isRobotConvertSelectable ? 'cursor-pointer' : ''}
                   ${isParkourTarget ? 'ring-2 ring-inset ring-lime-400 z-10 cursor-pointer brightness-125' : ''}
+                  ${isKnightJumpTarget ? 'ring-2 ring-inset ring-purple-400 z-10 cursor-pointer brightness-125' : ''}
                   border-[0.5px] border-black/10
                 `}
                 style={{
@@ -2620,6 +2688,7 @@ export default function App() {
                onClick={useSkill}
                disabled={
                  selectedJob === 'treasure_hunter' ||
+                 selectedJob === 'knight' ||
                  (selectedJob === 'robot' && robotJumpUses <= 0) ||
                  (selectedJob === 'geologist' && geologistScanUsed) ||
                  (!skillAvailable && selectedJob !== 'robot' && selectedJob !== 'geologist') ||
@@ -2637,6 +2706,7 @@ export default function App() {
                {selectedJob === 'robot' && <span className="text-[6px] opacity-70">岩場投下 x{robotJumpUses}</span>}
                {selectedJob === 'treasure_hunter' && <span className="text-[6px] opacity-70">跳躍 x{treasureHunterJumpUses}</span>}
                {selectedJob === 'geologist' && <span className="text-[6px] opacity-70">地層スキャン {geologistScanUsed ? '済' : '1回'}</span>}
+               {selectedJob === 'knight' && <span className="text-[6px] opacity-70">L-Jump x{knightJumpUses}</span>}
              </button>
              <button 
                onClick={setTank}
