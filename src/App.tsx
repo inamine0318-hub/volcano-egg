@@ -538,36 +538,22 @@ const PixelCharacter = React.memo(function PixelCharacter({
           </g>
         ) : jobId === 'knight' ? (
           <g>
-            {/* ── CHESS KNIGHT — white piece, right-facing silhouette ── */}
-            {/* Ear */}
-            <rect x="9"  y="0"  width="2"  height="1" fill="#F2F2F2" />
-            <rect x="8"  y="1"  width="4"  height="1" fill="#F2F2F2" />
-            {/* Head crown */}
-            <rect x="7"  y="2"  width="6"  height="1" fill="#F2F2F2" />
-            {/* Upper face + snout protruding right to x=14 */}
-            <rect x="6"  y="3"  width="9"  height="2" fill="#F2F2F2" />
-            {/* Lower face */}
-            <rect x="6"  y="5"  width="7"  height="1" fill="#F2F2F2" />
-            {/* Jaw */}
-            <rect x="7"  y="6"  width="5"  height="1" fill="#F2F2F2" />
-            {/* Throat */}
-            <rect x="7"  y="7"  width="4"  height="1" fill="#F2F2F2" />
-            {/* Neck */}
-            <rect x="7"  y="8"  width="5"  height="1" fill="#F2F2F2" />
-            {/* Neck base */}
-            <rect x="6"  y="9"  width="6"  height="1" fill="#F2F2F2" />
-            {/* Body */}
-            <rect x="5"  y="10" width="8"  height="2" fill="#F2F2F2" />
-            {/* Pedestal */}
-            <rect x="4"  y="12" width="10" height="1" fill="#F2F2F2" />
-            {/* Base */}
-            <rect x="3"  y="13" width="12" height="2" fill="#F2F2F2" />
+            {/* White chess knight — smooth illustration style */}
+            {/* Main silhouette: ear→forehead→snout→jaw→neck S-curve→body→base */}
+            <path
+              d="M10,0 C12,0 12.5,1 12,2.5 L14.5,4 L15,5.5 L15,7 C14,8.5 12.5,9 11.5,9.5 C10.5,10 10,10.5 11,11.5 L13,13 L13,15 L3,15 L3,13 L5,11.5 C5.5,10.5 6,9.5 6,8.5 C6.5,7 6.5,4.5 7,3 C7.5,1.5 8.5,0.5 10,0 Z"
+              fill="#F5F5F5"
+              stroke="#1A1A1A"
+              strokeWidth="0.8"
+              strokeLinejoin="round"
+            />
             {/* Eye */}
-            <rect x="8"  y="3"  width="1"  height="1" fill="#111111" />
-            {/* Nostril */}
-            <rect x="13" y="4"  width="1"  height="1" fill="#666666" opacity="0.6" />
-            {/* Mane shadow on back of head */}
-            <rect x="7"  y="2"  width="2"  height="4" fill="#AAAAAA" opacity="0.45" />
+            <circle cx="10" cy="4.5" r="0.9" fill="#1A1A1A" />
+            <circle cx="10.3" cy="4.2" r="0.28" fill="white" opacity="0.6" />
+            {/* Nostril on snout */}
+            <ellipse cx="14.5" cy="6.5" rx="0.4" ry="0.35" fill="#666" opacity="0.5" />
+            {/* Mane line along back of head */}
+            <path d="M7.5,3 C7.8,4.5 7.8,6.5 7.5,8.5" stroke="#CCCCCC" strokeWidth="1.2" fill="none" opacity="0.55" strokeLinecap="round" />
           </g>
         ) : jobColor === '#90A4AE' ? (
           <g>
