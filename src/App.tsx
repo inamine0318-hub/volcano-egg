@@ -2377,9 +2377,9 @@ export default function App() {
           className="grid gap-[1px] bg-[#3E2723]/30 p-1"
           style={{
             gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
+            gridAutoRows: '1fr',
             width: '100%',
             aspectRatio: `${GRID_COLS} / ${GRID_ROWS}`,
-            contain: 'layout style',
           }}
         >
           {tiles.map((tile) => {
@@ -2468,7 +2468,6 @@ export default function App() {
                 style={{
                   imageRendering: 'pixelated',
                   backgroundColor: (isLava || tile.type === 'magma' || tile.type === 'wall') ? '#B71C1C' : tile.type === 'hole' ? '#000000' : '#795548',
-                  contain: 'layout style paint',
                 }}
               >
                 {/* Visual Elements */}
