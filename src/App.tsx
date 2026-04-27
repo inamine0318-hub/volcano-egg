@@ -158,7 +158,7 @@ const playDoomSE = () => {
   setTimeout(() => playSE(55, 'sawtooth', 1.2, 0.18), 180);
 };
 
-type TileType = 'road' | 'wall' | 'egg' | 'vent' | 'spray' | 'heli' | 'tank' | 'magma' | 'scale' | 'ore' | 'data' | 'remains' | 'gem' | 'document' | 'statue' | 'crystal' | 'cursed' | 'hole' | 'hidden_tank';
+type TileType = 'road' | 'wall' | 'egg' | 'vent' | 'spray' | 'repair_kit' | 'heli' | 'tank' | 'magma' | 'scale' | 'ore' | 'data' | 'remains' | 'gem' | 'document' | 'statue' | 'crystal' | 'cursed' | 'hole' | 'hidden_tank';
 
 interface Treasure {
   id: string;
@@ -720,6 +720,22 @@ const PixelSpray = () => (
   </svg>
 );
 
+const PixelRepairKit = () => (
+  <svg viewBox="0 0 16 16" className="w-full h-full" style={{ imageRendering: 'pixelated' }}>
+    {/* body */}
+    <rect x="4" y="6" width="8" height="8" fill="#E65100" />
+    <rect x="4" y="5" width="8" height="2" fill="#FF8F00" />
+    {/* handle */}
+    <rect x="6" y="3" width="4" height="3" fill="#BF360C" />
+    <rect x="7" y="2" width="2" height="1" fill="#7B2809" />
+    {/* cross symbol */}
+    <rect x="7" y="7" width="2" height="6" fill="#FFF9C4" opacity="0.9" />
+    <rect x="5" y="9" width="6" height="2" fill="#FFF9C4" opacity="0.9" />
+    {/* heat shimmer dot */}
+    <rect x="11" y="4" width="1" height="1" fill="#FFCC02" opacity="0.8" />
+  </svg>
+);
+
 const PixelCrystal = () => (
   <svg viewBox="0 0 16 16" className="w-full h-full" style={{ imageRendering: 'pixelated' }}>
     <path d="M8 1 L12 5 L12 11 L8 15 L4 11 L4 5 Z" fill="#4DD0E1" />
@@ -822,7 +838,8 @@ export default function App() {
             const rand = Math.random();
             if (rand < 0.12) type = 'wall';
             else if (rand < 0.14) type = 'vent';
-            else if (rand < 0.17) type = 'spray';
+            else if (rand < 0.161) type = 'spray';
+            else if (rand < 0.17) type = 'repair_kit';
             else if (rand < 0.18) type = 'scale';
             else if (rand < 0.19) type = 'ore';
             else if (rand < 0.195) type = 'data';
@@ -1247,6 +1264,22 @@ export default function App() {
         }
         setTiles(prev => prev.map(t => t.id === tile.id ? { ...t, type: 'road' } : t));
         break;
+      case 'repair_kit': {
+        const newHp = hp - 20;
+        setSuitCondition(prev => Math.min(maxSuit, prev + 40));
+        setTiles(prev => prev.map(t => t.id === tile.id ? { ...t, type: 'road' } : t));
+        if (newHp <= 0) {
+          setHp(0);
+          addLog('リペアキットを使用：スーツを緊急補修したが、体に負担がかかった！', 'warning');
+          playBeep(300, 0.2);
+          handleDeath('リペアキットの副作用で限界を超えた...');
+        } else {
+          setHp(newHp);
+          addLog('リペアキットを使用：スーツを緊急補修したが、体に負担がかかった！', 'warning');
+          playArp([500, 400, 350]);
+        }
+        break;
+      }
       case 'vent':
         const isUp = Math.random() < 0.7;
         addLog(isUp ? '蒸気噴出！上空へ吹き飛ばされた！' : '乱気流！地面へ叩きつけられた...', isUp ? 'warning' : 'danger');
@@ -1483,7 +1516,7 @@ export default function App() {
               (t.x === 0 && t.y === GRID_ROWS - 1) || t.type === 'heli' ||
               (eggTile  && Math.abs(t.x - eggTile.x)  + Math.abs(t.y - eggTile.y)  === 1) ||
               (heliTile && Math.abs(t.x - heliTile.x) + Math.abs(t.y - heliTile.y) === 1);
-            if (!isProtected && (t.type === 'road' || t.type === 'vent' || t.type === 'spray')) {
+            if (!isProtected && (t.type === 'road' || t.type === 'vent' || t.type === 'spray' || t.type === 'repair_kit')) {
               return { ...t, type: 'magma', magmaCooldown: 5 };
             }
           }
@@ -2462,6 +2495,7 @@ export default function App() {
                 {!isLava && tile.type === 'heli' && <PixelHeli />}
                 {!isLava && tile.type === 'egg' && <PixelEgg />}
                 {!isLava && tile.type === 'spray' && <PixelSpray />}
+                {!isLava && tile.type === 'repair_kit' && <PixelRepairKit />}
                 {!isLava && tile.type === 'vent' && <div className="w-full h-full flex items-center justify-center opacity-30"><Wind className="w-4 h-4 text-white" /></div>}
                 {!isLava && tile.type === 'tank' && <PixelTank />}
                 {!isLava && tile.type === 'scale' && <div className="w-full h-full flex items-center justify-center p-2"><div className="w-full h-full bg-[#FFEB3B] rounded-full border border-black/10" /></div>}
