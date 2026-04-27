@@ -195,7 +195,7 @@ interface LogEntry {
   type: 'info' | 'danger' | 'success' | 'warning';
 }
 
-type JobType = 'leader' | 'tech' | 'carrier' | 'scout' | 'robot' | 'treasure_hunter' | 'geologist' | 'knight';
+type JobType = 'leader' | 'tech' | 'carrier' | 'scout' | 'robot' | 'treasure_hunter' | 'geologist';
 type DifficultyType = 'EASY' | 'NORMAL' | 'HARD' | 'LEGEND';
 
 interface JobDefinition {
@@ -295,18 +295,6 @@ const JOBS: JobDefinition[] = [
     skillName: '地層スキャン',
     skillText: '全マップの隠しアイテムを即座に開示する。1回限り。',
     color: '#F9A825'
-  },
-  {
-    id: 'knight',
-    name: 'チェスナイト',
-    role: 'L字跳躍 / 障害物踏破',
-    description: '漆黒のチェスの騎士駒が突如として動き出した。論理を超えたL字跳躍で火山島を踏破する。',
-    difficulty: 3,
-    ability: 'L-Jump（3回）: チェスのナイトのL字動作で壁・溶岩・穴を飛び越えて着地',
-    recommend: '壁や溶岩をショートカットして最短ルートを狙いたい人向け',
-    skillName: 'L-Jump',
-    skillText: 'チェスのナイトのL字移動で任意のマスへ跳躍。障害物を無視する。3回限り。',
-    color: '#37474F'
   },
 ];
 
@@ -536,25 +524,6 @@ const PixelCharacter = React.memo(function PixelCharacter({
             <rect x="5" y="15" width="1" height="1" fill="#3A2010" />
             <rect x="10" y="15" width="1" height="1" fill="#3A2010" />
           </g>
-        ) : jobId === 'knight' ? (
-          <g>
-            {/* White chess knight — smooth illustration style */}
-            {/* Main silhouette: ear→forehead→snout→jaw→neck S-curve→body→base */}
-            <path
-              d="M10,0 C12,0 12.5,1 12,2.5 L14.5,4 L15,5.5 L15,7 C14,8.5 12.5,9 11.5,9.5 C10.5,10 10,10.5 11,11.5 L13,13 L13,15 L3,15 L3,13 L5,11.5 C5.5,10.5 6,9.5 6,8.5 C6.5,7 6.5,4.5 7,3 C7.5,1.5 8.5,0.5 10,0 Z"
-              fill="#F5F5F5"
-              stroke="#1A1A1A"
-              strokeWidth="0.8"
-              strokeLinejoin="round"
-            />
-            {/* Eye */}
-            <circle cx="10" cy="4.5" r="0.9" fill="#1A1A1A" />
-            <circle cx="10.3" cy="4.2" r="0.28" fill="white" opacity="0.6" />
-            {/* Nostril on snout */}
-            <ellipse cx="14.5" cy="6.5" rx="0.4" ry="0.35" fill="#666" opacity="0.5" />
-            {/* Mane line along back of head */}
-            <path d="M7.5,3 C7.8,4.5 7.8,6.5 7.5,8.5" stroke="#CCCCCC" strokeWidth="1.2" fill="none" opacity="0.55" strokeLinecap="round" />
-          </g>
         ) : jobColor === '#90A4AE' ? (
           <g>
             <rect x="4" y="3" width="8" height="9" fill="#37474F" />
@@ -682,7 +651,13 @@ const PixelDocument = ({ size = "w-full h-full" }: { size?: string }) => (
 
 const PixelRock = React.memo(function PixelRock() {
   return (
-    <svg viewBox="0 0 16 16" className="w-full h-full" style={{ imageRendering: 'pixelated' }}>
+    <svg
+      viewBox="0 0 16 16"
+      style={{
+        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+        imageRendering: 'pixelated', pointerEvents: 'none', display: 'block',
+      }}
+    >
       <rect width="16" height="16" fill="#795548" />
       <rect x="2" y="3" width="2" height="1" fill="#5D4037" />
       <rect x="10" y="5" width="3" height="1" fill="#3E2723" />
@@ -1007,7 +982,7 @@ export default function App() {
   const [isRobotConvertActive, setIsRobotConvertActive] = useState(false);
   const [treasureHunterJumpUses, setTreasureHunterJumpUses] = useState(3);
   const [geologistScanUsed, setGeologistScanUsed] = useState(false);
-  const [knightJumpUses, setKnightJumpUses] = useState(3);
+
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
@@ -1455,17 +1430,19 @@ export default function App() {
       setScoutFixedRoll(false);
       addLog('登山家：精密スキャン（出目を6に固定）', 'success');
     }
-    setVisualRoll(rawRoll);
     setIsRolling(false);
-    
+
     // Calculate Bonuses
     let jobBonus = selectedJob === 'scout' ? 1 : 0;
-    
+
     // Type Penalty: -1 die step per unique sub-item type (excluding egg)
     const typePenaltyVal = uniqueSubItemTypes;
 
     // Final Calculation: min 1 guaranteed
     const finalSteps = Math.max(1, rawRoll + jobBonus - typePenaltyVal);
+
+    // Show die face matching actual movable steps (capped at 6 for emoji range)
+    setVisualRoll(Math.min(6, finalSteps));
 
     setLastRollDetails({
       raw: rawRoll,
@@ -2435,16 +2412,6 @@ export default function App() {
               Math.abs(tile.x - playerPos.x) + Math.abs(tile.y - playerPos.y) === 1 &&
               tile.type === 'road' && !isLava;
 
-            // Knight L-Jump target: chess knight L-shape move, jumps over any obstacle
-            const isKnightJumpTarget = (() => {
-              if (selectedJob !== 'knight' || knightJumpUses <= 0 || stepsRemaining <= 0 || isMoving || isGameOver) return false;
-              const dx = tile.x - playerPos.x;
-              const dy = tile.y - playerPos.y;
-              const isL = (Math.abs(dx) === 1 && Math.abs(dy) === 2) || (Math.abs(dx) === 2 && Math.abs(dy) === 1);
-              if (!isL) return false;
-              return tile.type !== 'wall' && tile.type !== 'hole' && tile.type !== 'magma' && tile.y < lavaLevel;
-            })();
-
             // Parkour jump target: 2 tiles ahead in cardinal direction, middle is blocked
             const isParkourTarget = (() => {
               if (selectedJob !== 'treasure_hunter' || treasureHunterJumpUses <= 0 || stepsRemaining <= 0 || isMoving || isGameOver) return false;
@@ -2482,12 +2449,6 @@ export default function App() {
                     const sdx = Math.sign(tile.x - playerPos.x);
                     const sdy = Math.sign(tile.y - playerPos.y);
                     moveToOneStep(sdx, sdy);
-                  } else if (isKnightJumpTarget) {
-                    setIsMoving(true);
-                    setPlayerPos({ x: tile.x, y: tile.y });
-                    setKnightJumpUses(prev => prev - 1);
-                    setStepsRemaining(prev => prev - 1);
-                    setTimeout(() => { setIsMoving(false); handleTileEffect(tile.x, tile.y); }, 150);
                   }
                 }}
                 onTouchEnd={(e) => {
@@ -2503,13 +2464,6 @@ export default function App() {
                     const sdx = Math.sign(tile.x - playerPos.x);
                     const sdy = Math.sign(tile.y - playerPos.y);
                     moveToOneStep(sdx, sdy);
-                  } else if (isKnightJumpTarget) {
-                    e.preventDefault();
-                    setIsMoving(true);
-                    setPlayerPos({ x: tile.x, y: tile.y });
-                    setKnightJumpUses(prev => prev - 1);
-                    setStepsRemaining(prev => prev - 1);
-                    setTimeout(() => { setIsMoving(false); handleTileEffect(tile.x, tile.y); }, 150);
                   }
                 }}
                 className={`
@@ -2519,7 +2473,6 @@ export default function App() {
                   ${isTankSelectable ? 'ring-2 ring-inset ring-white z-10 cursor-pointer' : ''}
                   ${isRobotConvertSelectable ? 'cursor-pointer' : ''}
                   ${isParkourTarget ? 'ring-2 ring-inset ring-lime-400 z-10 cursor-pointer brightness-125' : ''}
-                  ${isKnightJumpTarget ? 'ring-2 ring-inset ring-purple-400 z-10 cursor-pointer brightness-125' : ''}
                   border-[0.5px] border-black/10
                 `}
                 style={{
@@ -2677,7 +2630,6 @@ export default function App() {
                onClick={useSkill}
                disabled={
                  selectedJob === 'treasure_hunter' ||
-                 selectedJob === 'knight' ||
                  (selectedJob === 'robot' && robotJumpUses <= 0) ||
                  (selectedJob === 'geologist' && geologistScanUsed) ||
                  (!skillAvailable && selectedJob !== 'robot' && selectedJob !== 'geologist') ||
@@ -2695,7 +2647,6 @@ export default function App() {
                {selectedJob === 'robot' && <span className="text-[6px] opacity-70">岩場投下 x{robotJumpUses}</span>}
                {selectedJob === 'treasure_hunter' && <span className="text-[6px] opacity-70">跳躍 x{treasureHunterJumpUses}</span>}
                {selectedJob === 'geologist' && <span className="text-[6px] opacity-70">地層スキャン {geologistScanUsed ? '済' : '1回'}</span>}
-               {selectedJob === 'knight' && <span className="text-[6px] opacity-70">L-Jump x{knightJumpUses}</span>}
              </button>
              <button 
                onClick={setTank}
