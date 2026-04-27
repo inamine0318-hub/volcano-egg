@@ -665,7 +665,18 @@ const PixelRock = React.memo(function PixelRock() {
 });
 
 const PixelMagma = React.memo(function PixelMagma() {
-  return <div className="magma-tile" />;
+  return (
+    <div className="magma-tile">
+      <svg viewBox="0 0 16 16" width="100%" height="100%" style={{ position: 'absolute', inset: 0, opacity: 0.7 }}>
+        {/* bubbles - static, no animation */}
+        <circle cx="3"  cy="11" r="1.5" fill="#FFEE58" />
+        <circle cx="8"  cy="13" r="1.2" fill="#FFF176" />
+        <circle cx="13" cy="10" r="1.4" fill="#FFEE58" />
+        <circle cx="6"  cy="8"  r="0.9" fill="#FFF9C4" />
+        <circle cx="11" cy="6"  r="0.8" fill="#FFF176" />
+      </svg>
+    </div>
+  );
 });
 
 const PixelTank = React.memo(function PixelTank() {
