@@ -309,23 +309,18 @@ const TREASURE_DATA: Record<string, { name: string; value: number; weight: numbe
 const GlobalStyles = () => (
   <style dangerouslySetInnerHTML={{ __html: `
     @keyframes magmaFlash {
-      0%, 49% { background-color: #FF0000; }
+      0%, 49% { background-color: #CC0000; }
       50%, 100% { background-color: #FF4500; }
     }
-    @keyframes bubbleRise {
-      0% { transform: translateY(0) scale(0.5); opacity: 0; }
-      50% { opacity: 0.8; }
-      100% { transform: translateY(-16px) scale(1.2); opacity: 0; }
+    .magma-tile {
+      position: absolute; inset: 0;
+      pointer-events: none; overflow: hidden;
+      animation: magmaFlash 1.2s steps(2, start) infinite;
+      background-color: #CC0000;
     }
-    @keyframes heatPulse {
-      0%, 100% { filter: brightness(1) drop-shadow(0 0 4px rgba(255,0,0,0.6)); }
-      50% { filter: brightness(1.3) drop-shadow(0 0 10px rgba(255,69,0,0.8)); }
-    }
-    .magma-bubble:nth-child(1) { animation: bubbleRise 1.2s linear infinite; animation-delay: 0.1s; left: 15%; }
-    .magma-bubble:nth-child(2) { animation: bubbleRise 1.5s linear infinite; animation-delay: 0.4s; left: 35%; }
-    .magma-bubble:nth-child(3) { animation: bubbleRise 1.3s linear infinite; animation-delay: 0.7s; left: 60%; }
-    .magma-bubble:nth-child(4) { animation: bubbleRise 1.7s linear infinite; animation-delay: 0.2s; left: 85%; }
     button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
   `}} />
 );
 
@@ -670,22 +665,7 @@ const PixelRock = React.memo(function PixelRock() {
 });
 
 const PixelMagma = React.memo(function PixelMagma() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none"
-         style={{
-           animation: 'magmaFlash 1s steps(2, start) infinite',
-           boxShadow: 'inset 0 0 10px #FF4500',
-           backgroundColor: '#FF0000'
-         }}>
-      <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 10px #FF4500' }} />
-      {[0, 1, 2, 3].map((val) => (
-        <div
-          key={`bubble-${val}`}
-          className="magma-bubble absolute bottom-[-2px] w-2.5 h-2.5 rounded-full bg-[#FFFF00] opacity-80"
-        />
-      ))}
-    </div>
-  );
+  return <div className="magma-tile" />;
 });
 
 const PixelTank = React.memo(function PixelTank() {
@@ -941,6 +921,11 @@ export default function App() {
   const [tankInventory, setTankInventory] = useState(3);
   const [maxTanks, setMaxTanks] = useState(3);
   const [bombs, setBombs] = useState<VolcanicBomb[]>([]);
+  const bombMap = useMemo(() => {
+    const m = new Map<string, VolcanicBomb>();
+    bombs.forEach(b => m.set(`${b.x},${b.y}`, b));
+    return m;
+  }, [bombs]);
   const [showDropModal, setShowDropModal] = useState(false);
   const [showSystemMenu, setShowSystemMenu] = useState(false);
   const [showRanking, setShowRanking] = useState(false);
@@ -2342,12 +2327,13 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        <div 
-          className="grid gap-[1px] bg-[#3E2723]/30 p-1" 
-          style={{ 
+        <div
+          className="grid gap-[1px] bg-[#3E2723]/30 p-1"
+          style={{
             gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
             width: '100%',
-            aspectRatio: `${GRID_COLS} / ${GRID_ROWS}`
+            aspectRatio: `${GRID_COLS} / ${GRID_ROWS}`,
+            contain: 'layout style',
           }}
         >
           {tiles.map((tile) => {
@@ -2436,6 +2422,7 @@ export default function App() {
                 style={{
                   imageRendering: 'pixelated',
                   backgroundColor: (isLava || tile.type === 'magma' || tile.type === 'wall') ? '#B71C1C' : tile.type === 'hole' ? '#000000' : '#795548',
+                  contain: 'layout style paint',
                 }}
               >
                 {/* Visual Elements */}
@@ -2453,8 +2440,8 @@ export default function App() {
                 )}
                 
                 {/* Volcanic Bomb Warning */}
-                {bombs.find(b => b.x === tile.x && b.y === tile.y) !== undefined && (
-                  <PixelBombMark turns={bombs.find(b => b.x === tile.x && b.y === tile.y)!.turnsToImpact} />
+                {bombMap.has(`${tile.x},${tile.y}`) && (
+                  <PixelBombMark turns={bombMap.get(`${tile.x},${tile.y}`)!.turnsToImpact} />
                 )}
                 {selectedJob === 'scout' && tile.type === 'vent' && (
                   <div className="absolute inset-0 border border-cyan-400/30 animate-pulse bg-cyan-400/5" />
