@@ -538,33 +538,45 @@ const PixelCharacter = React.memo(function PixelCharacter({
           </g>
         ) : jobId === 'knight' ? (
           <g>
-            {/* ── CHESS KNIGHT PIECE — pure black silhouette ── */}
-            {/* ear */}
-            <rect x="5" y="0" width="4" height="1" fill="#111111" />
-            {/* mane top */}
-            <rect x="4" y="1" width="6" height="1" fill="#111111" />
-            {/* mane body */}
-            <rect x="3" y="2" width="7" height="1" fill="#111111" />
-            {/* upper head */}
-            <rect x="3" y="3" width="9" height="1" fill="#111111" />
-            {/* wide head */}
-            <rect x="2" y="4" width="10" height="1" fill="#111111" />
-            {/* face / snout */}
-            <rect x="2" y="5" width="9" height="1" fill="#111111" />
-            {/* lower face */}
-            <rect x="2" y="6" width="8" height="1" fill="#111111" />
-            {/* chin */}
-            <rect x="3" y="7" width="6" height="1" fill="#111111" />
-            {/* neck */}
-            <rect x="4" y="8" width="6" height="1" fill="#111111" />
-            {/* upper body */}
-            <rect x="4" y="9" width="7" height="2" fill="#111111" />
-            {/* body */}
-            <rect x="3" y="11" width="9" height="1" fill="#111111" />
-            {/* pedestal */}
-            <rect x="3" y="12" width="10" height="2" fill="#111111" />
-            {/* base */}
-            <rect x="2" y="14" width="12" height="2" fill="#111111" />
+            {/* ── WHITE CHESS KNIGHT — horse head facing right ── */}
+            {/* Outline layer (dark, 1px outside white) */}
+            <rect x="9"  y="0" width="4"  height="3" fill="#1A1A1A" />
+            <rect x="6"  y="2" width="9"  height="1" fill="#1A1A1A" />
+            <rect x="5"  y="3" width="10" height="5" fill="#1A1A1A" />
+            <rect x="6"  y="8" width="5"  height="1" fill="#1A1A1A" />
+            <rect x="5"  y="9" width="7"  height="1" fill="#1A1A1A" />
+            <rect x="3"  y="10" width="10" height="4" fill="#1A1A1A" />
+            <rect x="1"  y="14" width="14" height="2" fill="#1A1A1A" />
+            {/* White fill */}
+            {/* Ear */}
+            <rect x="10" y="0" width="2" height="2" fill="#F5F5F5" />
+            {/* Mane */}
+            <rect x="8"  y="1" width="4" height="1" fill="#F5F5F5" />
+            <rect x="7"  y="2" width="7" height="1" fill="#F5F5F5" />
+            {/* Upper head */}
+            <rect x="6"  y="3" width="8" height="1" fill="#F5F5F5" />
+            {/* Snout row — sticks out furthest right (x=14) */}
+            <rect x="6"  y="4" width="9" height="1" fill="#F5F5F5" />
+            {/* Mid face — shorter, creates snout shape */}
+            <rect x="6"  y="5" width="7" height="1" fill="#F5F5F5" />
+            {/* Jaw / lower face */}
+            <rect x="7"  y="6" width="5" height="1" fill="#F5F5F5" />
+            {/* Chin */}
+            <rect x="8"  y="7" width="3" height="1" fill="#F5F5F5" />
+            {/* Eye */}
+            <rect x="8"  y="4" width="1" height="1" fill="#222222" />
+            {/* Neck */}
+            <rect x="7"  y="8" width="3" height="1" fill="#F5F5F5" />
+            {/* Body */}
+            <rect x="6"  y="9" width="5" height="1" fill="#F5F5F5" />
+            <rect x="4"  y="10" width="8" height="1" fill="#F5F5F5" />
+            <rect x="4"  y="11" width="8" height="2" fill="#F5F5F5" />
+            {/* Pedestal */}
+            <rect x="3"  y="13" width="10" height="1" fill="#F5F5F5" />
+            {/* Base */}
+            <rect x="2"  y="14" width="12" height="2" fill="#F5F5F5" />
+            {/* Base shadow for 3D depth */}
+            <rect x="14" y="10" width="1" height="5" fill="#AAAAAA" opacity="0.6" />
           </g>
         ) : jobColor === '#90A4AE' ? (
           <g>
