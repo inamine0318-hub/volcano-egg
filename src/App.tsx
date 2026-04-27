@@ -313,7 +313,7 @@ const GlobalStyles = () => (
       50%, 100% { background-color: #FF4500; }
     }
     .magma-tile {
-      position: absolute; inset: 0;
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
       pointer-events: none; overflow: hidden;
       animation: magmaFlash 1.2s steps(2, start) infinite;
       background-color: #CC0000;
@@ -667,13 +667,15 @@ const PixelRock = React.memo(function PixelRock() {
 const PixelMagma = React.memo(function PixelMagma() {
   return (
     <div className="magma-tile">
-      <svg viewBox="0 0 16 16" width="100%" height="100%" style={{ position: 'absolute', inset: 0, opacity: 0.7 }}>
-        {/* bubbles - static, no animation */}
-        <circle cx="3"  cy="11" r="1.5" fill="#FFEE58" />
+      <svg
+        viewBox="0 0 16 16"
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.75 }}
+      >
+        <circle cx="3"  cy="12" r="1.5" fill="#FFEE58" />
         <circle cx="8"  cy="13" r="1.2" fill="#FFF176" />
-        <circle cx="13" cy="10" r="1.4" fill="#FFEE58" />
-        <circle cx="6"  cy="8"  r="0.9" fill="#FFF9C4" />
-        <circle cx="11" cy="6"  r="0.8" fill="#FFF176" />
+        <circle cx="13" cy="11" r="1.4" fill="#FFEE58" />
+        <circle cx="6"  cy="9"  r="0.9" fill="#FFF9C4" />
+        <circle cx="11" cy="7"  r="0.8" fill="#FFF176" />
       </svg>
     </div>
   );
