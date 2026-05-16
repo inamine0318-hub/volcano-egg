@@ -2368,12 +2368,6 @@ export default function App() {
 
              {/* Items Row */}
              <div className="flex items-center gap-1 shrink-0">
-                {heliTurnsLeft !== null && (
-                  <div className="flex items-center bg-black/60 px-1 py-1 border border-[#FF5252] rounded-sm mr-1 animate-pulse">
-                    <Plane className="w-3 h-3 text-[#FF5252]" />
-                    <span className="text-[8px] text-[#FF5252] ml-0.5 font-black">{heliTurnsLeft}T</span>
-                  </div>
-                )}
                 <div className="flex items-center bg-black/40 px-1.5 py-1 border border-white/5 rounded-sm">
                    <PixelGem color="#4FC3F7" size="w-3.5 h-3.5" />
                    <span className="text-[8px] text-white ml-0.5">{inventory.ores}</span>
@@ -2419,9 +2413,15 @@ export default function App() {
           {/* Current Objective */}
           <div className={`mt-0.5 flex items-center gap-1.5 px-1 py-0.5 rounded-sm border ${eggs > 0 ? 'bg-orange-500/20 border-orange-500/50' : 'bg-[#FFD600]/10 border-[#FFD600]/30'}`}>
             <span className="text-[8px]">{eggs > 0 ? '🚁' : '🥚'}</span>
-            <span className={`text-[10px] font-black uppercase tracking-tight ${eggs > 0 ? 'text-orange-300' : 'text-[#FFD600]'}`}>
+            <span className={`text-[10px] font-black uppercase tracking-tight flex-1 ${eggs > 0 ? 'text-orange-300' : 'text-[#FFD600]'}`}>
               {eggs > 0 ? 'ヘリポート(左下)まで帰還せよ！' : '山頂(右上)の卵を確保せよ'}
             </span>
+            {heliTurnsLeft !== null && (
+              <div className="flex items-center gap-0.5 animate-pulse shrink-0">
+                <Plane className="w-3 h-3 text-[#FF5252]" />
+                <span className="text-[9px] text-[#FF5252] font-black">{heliTurnsLeft}T</span>
+              </div>
+            )}
           </div>
       </header>
 
