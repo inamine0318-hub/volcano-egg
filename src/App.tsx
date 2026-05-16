@@ -2344,7 +2344,7 @@ export default function App() {
                    <Database className="w-3 h-3 text-emerald-400" />
                    <span className="text-[8px] text-white ml-0.5">{inventory.data}</span>
                 </div>
-                <div className={`flex items-center px-1.5 py-1 border rounded-sm transition-all ${eggs > 0 ? 'bg-orange-500/40 border-[#FFD600] scale-110 shadow-[0_0_10px_rgba(255,214,0,0.5)]' : 'bg-black/40 border-white/5 opacity-50'}`}>
+                <div className={`flex items-center px-1.5 py-1 border rounded-sm transition-all ${eggs > 0 ? 'bg-orange-500/40 border-[#FFD600] shadow-[0_0_10px_rgba(255,214,0,0.5)]' : 'bg-black/40 border-white/5 opacity-50'}`}>
                    <PixelEgg size="w-3.5 h-3.5" />
                    <span className="text-[8px] text-white ml-0.5 font-black">{eggs}</span>
                 </div>
@@ -2383,32 +2383,6 @@ export default function App() {
           </div>
       </header>
 
-      {/* Mini Map */}
-      {selectedJob && !showBriefing && (
-        <div className="absolute top-[72px] right-1 z-40 pointer-events-none opacity-80">
-          <div className="bg-black/80 border border-[#FFD600]/40 p-0.5">
-            <svg width={GRID_COLS * 4} height={GRID_ROWS * 2} style={{ display: 'block' }}>
-              {tiles.map(t => {
-                const isLavaTile = t.y >= lavaLevel;
-                const fill = isLavaTile ? '#FF1744'
-                  : t.type === 'wall' || t.type === 'magma' ? '#8D2020'
-                  : t.type === 'egg' ? '#FFD600'
-                  : t.type === 'heli' ? '#4FC3F7'
-                  : t.type === 'hole' ? '#111'
-                  : t.unstable ? '#8B6914'
-                  : '#4A3020';
-                return <rect key={t.id} x={t.x * 4} y={t.y * 2} width={4} height={2} fill={fill} />;
-              })}
-              {/* Bombs */}
-              {bombs.map((b, i) => (
-                <rect key={`b${i}`} x={b.x * 4} y={b.y * 2} width={4} height={2} fill="#FF6D00" opacity={0.9} />
-              ))}
-              {/* Player */}
-              <rect x={playerPos.x * 4} y={playerPos.y * 2} width={4} height={2} fill="#FFFFFF" />
-            </svg>
-          </div>
-        </div>
-      )}
 
       {/* Tile Info Popup */}
       <AnimatePresence>
@@ -2835,14 +2809,14 @@ export default function App() {
                    <button onClick={() => { setAutoPath([]); moveToOneStep(0, 1); }} className="w-11 h-11 bg-[#B71C1C] border-b-4 border-black text-white flex items-center justify-center active:translate-y-0.5 active:border-b-2 rounded shadow-md touch-manipulation"><ChevronDown className="w-7 h-7" /></button>
                    <div />
                 </div>
-                {stepsRemaining > 0 && !isMoving && (
-                  <button
-                    onClick={() => { setStepsRemaining(0); setAutoPath([]); }}
-                    className="w-full py-1 bg-zinc-700 border-b-2 border-black text-white text-[9px] font-black uppercase rounded active:translate-y-0.5 active:border-none touch-manipulation"
-                  >
-                    ターン終了
-                  </button>
-                )}
+                <button
+                  onClick={() => { setStepsRemaining(0); setAutoPath([]); }}
+                  disabled={!(stepsRemaining > 0 && !isMoving)}
+                  className={`w-full py-1 bg-zinc-700 border-b-2 border-black text-white text-[9px] font-black uppercase rounded touch-manipulation
+                    ${stepsRemaining > 0 && !isMoving ? 'active:translate-y-0.5 active:border-none' : 'invisible pointer-events-none'}`}
+                >
+                  ターン終了
+                </button>
               </div>
            </div>
         </div>
