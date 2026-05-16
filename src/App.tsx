@@ -3345,25 +3345,25 @@ export default function App() {
                 <h2 className="text-[11px] font-black text-black uppercase tracking-widest">❓ 遊び方</h2>
                 <button onClick={() => setShowHowTo(false)} className="text-black font-black text-[10px] px-2 py-0.5 bg-black/20 active:bg-black/40">✕</button>
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 text-[7px] text-white/90 leading-relaxed font-bold scrollbar-hide">
+              <div className="flex-1 overflow-y-auto p-4 space-y-5 text-[10px] text-white/90 leading-loose font-bold scrollbar-hide">
 
                 <section>
-                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">🎯 ゴール</h3>
+                  <h3 className="text-[#FFD600] font-black uppercase mb-2 text-[12px] border-b border-[#FFD600]/30 pb-1">🎯 ゴール</h3>
                   <p>右上の山頂にある<span className="text-[#FFD600]">ドラゴンの卵🥚</span>を拾い、左下の<span className="text-cyan-400">ヘリポート(H)</span>まで持ち帰ればクリア！</p>
                 </section>
 
                 <section>
-                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">🎲 基本の流れ</h3>
-                  <ol className="space-y-1 list-none">
-                    <li>① <span className="text-[#FFD600]">ダイスを振る</span>→出た数だけ移動できる歩数を獲得</li>
+                  <h3 className="text-[#FFD600] font-black uppercase mb-2 text-[12px] border-b border-[#FFD600]/30 pb-1">🎲 基本の流れ</h3>
+                  <ol className="space-y-2 list-none">
+                    <li>① <span className="text-[#FFD600]">ダイスを振る</span> → 出た数だけ移動できる歩数を獲得</li>
                     <li>② <span className="text-[#FFD600]">矢印ボタン</span>で1マスずつ移動する</li>
                     <li>③ 歩数を使い切ったら次のターンへ</li>
                   </ol>
                 </section>
 
                 <section>
-                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">❤️ リソース管理</h3>
-                  <ul className="space-y-1">
+                  <h3 className="text-[#FFD600] font-black uppercase mb-2 text-[12px] border-b border-[#FFD600]/30 pb-1">❤️ リソース管理</h3>
+                  <ul className="space-y-2">
                     <li>🟢 <span className="text-emerald-400">スーツ耐久値</span>…移動1歩ごとに-2%。0になるとHPが減り始める</li>
                     <li>🔴 <span className="text-red-400">HP</span>…0になるとゲームオーバー</li>
                     <li>🟠 <span className="text-orange-400">酸素タンク</span>…使うとスーツ耐久を+40%回復。大事に使おう</li>
@@ -3371,8 +3371,8 @@ export default function App() {
                 </section>
 
                 <section>
-                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">⚠️ 危険要素</h3>
-                  <ul className="space-y-1">
+                  <h3 className="text-[#FFD600] font-black uppercase mb-2 text-[12px] border-b border-[#FFD600]/30 pb-1">⚠️ 危険要素</h3>
+                  <ul className="space-y-2">
                     <li>💣 <span className="text-red-400">火山弾</span>…数字で着弾タイミングを予告。その場にいるとダメージ</li>
                     <li>🌊 <span className="text-orange-400">溶岩上昇</span>…卵を拾った後8ターンでヘリが離陸する！急いで戻れ</li>
                     <li>💨 <span className="text-gray-400">煙・熱波</span>…視界が悪くなったりスーツが余計に減ったりする</li>
@@ -3381,8 +3381,8 @@ export default function App() {
                 </section>
 
                 <section>
-                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">🏆 勝利条件（難易度別）</h3>
-                  <ul className="space-y-1">
+                  <h3 className="text-[#FFD600] font-black uppercase mb-2 text-[12px] border-b border-[#FFD600]/30 pb-1">🏆 勝利条件（難易度別）</h3>
+                  <ul className="space-y-2">
                     <li><span className="text-white/50">かんたん</span>…卵だけ持ち帰ればOK</li>
                     <li><span className="text-cyan-400">ふつう</span>…卵 + サブアイテム1種類（鉱石・鱗・データのどれか1つ）</li>
                     <li><span className="text-orange-400">むずかしい</span>…卵 + サブアイテム2種類</li>
@@ -3391,11 +3391,12 @@ export default function App() {
                 </section>
 
                 <section>
-                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">💡 コツ</h3>
-                  <ul className="space-y-1">
+                  <h3 className="text-[#FFD600] font-black uppercase mb-2 text-[12px] border-b border-[#FFD600]/30 pb-1">💡 コツ</h3>
+                  <ul className="space-y-2">
                     <li>・初めてなら<span className="text-white/70">リーダー</span>か<span className="text-white/70">軍人</span>がオススメ</li>
                     <li>・スーツ耐久が30%を切ったらタンクを使おう</li>
                     <li>・卵を拾ったらすぐ帰還ルートを確認！</li>
+                    <li>・<span className="text-[#FFD600]">マップのタイルをタップ</span>するとそのマスの説明が表示されるよ！</li>
                   </ul>
                 </section>
               </div>
