@@ -984,6 +984,7 @@ export default function App() {
   const [showHowTo, setShowHowTo] = useState(false);
   const [tilePopup, setTilePopup] = useState<{ name: string; effect: string; color: string } | null>(null);
   const tilePopupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [autoPath, setAutoPath] = useState<{x: number, y: number}[]>([]);
   const [showRanking, setShowRanking] = useState(false);
   const [skillAvailable, setSkillAvailable] = useState(true);
   const [skillActiveTurns, setSkillActiveTurns] = useState(0);
@@ -1837,6 +1838,28 @@ export default function App() {
     savePersistentState(newState);
   }, [persistent, playerPos.x, playerPos.y, inventory.scales, inventory.ores, inventory.data, inventory.treasures, inventoryWeight, turnCount, difficulty]);
 
+  const findPath = useCallback((tx: number, ty: number): {x: number, y: number}[] => {
+    if (ty >= lavaLevel) return [];
+    const queue: {x: number, y: number, path: {x: number, y: number}[]}[] = [
+      { x: playerPos.x, y: playerPos.y, path: [] }
+    ];
+    const visited = new Set([`${playerPos.x},${playerPos.y}`]);
+    while (queue.length > 0) {
+      const { x, y, path } = queue.shift()!;
+      if (x === tx && y === ty) return path;
+      for (const [dx, dy] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+        const nx = x + dx, ny = y + dy;
+        const key = `${nx},${ny}`;
+        if (nx < 0 || nx >= GRID_COLS || ny < 0 || ny >= GRID_ROWS || ny >= lavaLevel || visited.has(key)) continue;
+        const t = getTileAt(nx, ny);
+        if (!t || t.type === 'wall' || t.type === 'hole' || t.type === 'magma') continue;
+        visited.add(key);
+        queue.push({ x: nx, y: ny, path: [...path, { x: nx, y: ny }] });
+      }
+    }
+    return [];
+  }, [playerPos, lavaLevel, getTileAt]);
+
   const moveToOneStep = useCallback((dx: number, dy: number) => {
     if (isGameOver || isMoving || stepsRemaining <= 0) return;
     
@@ -2080,6 +2103,19 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isGameOver, showBriefing, selectedJob, stepsRemaining, isRolling, moveToOneStep, rollDice, setTank]);
 
+
+  // Auto-walk along autoPath
+  useEffect(() => {
+    if (autoPath.length === 0 || isMoving || stepsRemaining <= 0 || isGameOver) return;
+    const timer = setTimeout(() => {
+      const next = autoPath[0];
+      const dx = next.x - playerPos.x;
+      const dy = next.y - playerPos.y;
+      moveToOneStep(dx, dy);
+      setAutoPath(prev => prev.slice(1));
+    }, 130);
+    return () => clearTimeout(timer);
+  }, [autoPath, isMoving, stepsRemaining, isGameOver, playerPos, moveToOneStep]);
 
   const resetAndSelectJob = useCallback(() => {
     setSelectedJob(null);
@@ -2330,7 +2366,7 @@ export default function App() {
           <div className="mt-1 border-t border-white/10 pt-1 flex items-center justify-between overflow-hidden">
              <div className="flex items-center gap-1.5 overflow-hidden flex-1">
                <div className={`w-2 h-2 rounded-full shrink-0 ${logs[0]?.type === 'danger' ? 'bg-red-500 animate-pulse' : logs[0]?.type === 'success' ? 'bg-green-500' : logs[0]?.type === 'warning' ? 'bg-yellow-400' : 'bg-white/30'}`} />
-               <span className={`text-[9px] font-black uppercase tracking-tight truncate leading-none ${logs[0]?.type === 'danger' ? 'text-red-400' : logs[0]?.type === 'success' ? 'text-green-400' : logs[0]?.type === 'warning' ? 'text-yellow-300' : 'text-white/80'}`}>
+               <span className={`text-[11px] font-black uppercase tracking-tight truncate leading-none ${logs[0]?.type === 'danger' ? 'text-red-400' : logs[0]?.type === 'success' ? 'text-green-400' : logs[0]?.type === 'warning' ? 'text-yellow-300' : 'text-white/80'}`}>
                  {logs[0]?.message || 'ミッション開始待機中...'}
                </span>
              </div>
@@ -2341,11 +2377,38 @@ export default function App() {
           {/* Current Objective */}
           <div className={`mt-0.5 flex items-center gap-1.5 px-1 py-0.5 rounded-sm border ${eggs > 0 ? 'bg-orange-500/20 border-orange-500/50' : 'bg-[#FFD600]/10 border-[#FFD600]/30'}`}>
             <span className="text-[8px]">{eggs > 0 ? '🚁' : '🥚'}</span>
-            <span className={`text-[8px] font-black uppercase tracking-tight ${eggs > 0 ? 'text-orange-300' : 'text-[#FFD600]'}`}>
+            <span className={`text-[10px] font-black uppercase tracking-tight ${eggs > 0 ? 'text-orange-300' : 'text-[#FFD600]'}`}>
               {eggs > 0 ? 'ヘリポート(左下)まで帰還せよ！' : '山頂(右上)の卵を確保せよ'}
             </span>
           </div>
       </header>
+
+      {/* Mini Map */}
+      {selectedJob && !showBriefing && (
+        <div className="absolute top-[72px] right-1 z-40 pointer-events-none opacity-80">
+          <div className="bg-black/80 border border-[#FFD600]/40 p-0.5">
+            <svg width={GRID_COLS * 4} height={GRID_ROWS * 2} style={{ display: 'block' }}>
+              {tiles.map(t => {
+                const isLavaTile = t.y >= lavaLevel;
+                const fill = isLavaTile ? '#FF1744'
+                  : t.type === 'wall' || t.type === 'magma' ? '#8D2020'
+                  : t.type === 'egg' ? '#FFD600'
+                  : t.type === 'heli' ? '#4FC3F7'
+                  : t.type === 'hole' ? '#111'
+                  : t.unstable ? '#8B6914'
+                  : '#4A3020';
+                return <rect key={t.id} x={t.x * 4} y={t.y * 2} width={4} height={2} fill={fill} />;
+              })}
+              {/* Bombs */}
+              {bombs.map((b, i) => (
+                <rect key={`b${i}`} x={b.x * 4} y={b.y * 2} width={4} height={2} fill="#FF6D00" opacity={0.9} />
+              ))}
+              {/* Player */}
+              <rect x={playerPos.x * 4} y={playerPos.y * 2} width={4} height={2} fill="#FFFFFF" />
+            </svg>
+          </div>
+        </div>
+      )}
 
       {/* Tile Info Popup */}
       <AnimatePresence>
@@ -2492,6 +2555,13 @@ export default function App() {
                     const sdy = Math.sign(tile.y - playerPos.y);
                     moveToOneStep(sdx, sdy);
                   } else {
+                    if (stepsRemaining > 0 && !isMoving) {
+                      const path = findPath(tile.x, tile.y);
+                      if (path.length > 0) {
+                        setAutoPath(path);
+                        return;
+                      }
+                    }
                     const info = TILE_INFO[tile.type];
                     if (info) {
                       if (tilePopupTimerRef.current) clearTimeout(tilePopupTimerRef.current);
@@ -2652,7 +2722,7 @@ export default function App() {
                      <span className="text-[#FF5252]">-種類:{lastRollDetails.weightPenalty}</span>
                      <span className="text-cyan-400">+職能:{lastRollDetails.jobBonus}</span>
                    </div>
-                   <div className="text-[10px] font-black text-[#FFEB3B] leading-none mt-1">移動歩数 {lastRollDetails.final}</div>
+                   <div className="text-[12px] font-black text-[#FFEB3B] leading-none mt-1">移動歩数 {lastRollDetails.final}</div>
                  </>
                ) : (
                  <span className="text-[6px] text-white/20 uppercase tracking-widest font-black">機動待機中</span>
@@ -2734,19 +2804,29 @@ export default function App() {
                   <span className="text-[5px] font-black">ブースト</span>
                 </button>
               )}
-              <div className="grid grid-cols-3 gap-1.5 bg-black/80 p-1.5 border-2 border-[#3E2723] rounded shadow-inner">
-                 <div />
-                 <button onClick={() => moveToOneStep(0, -1)} className="w-11 h-11 bg-[#B71C1C] border-b-4 border-black text-white flex items-center justify-center active:translate-y-0.5 active:border-b-2 rounded shadow-md touch-manipulation"><ChevronUp className="w-7 h-7" /></button>
-                 <div />
-                 <button onClick={() => moveToOneStep(-1, 0)} className="w-11 h-11 bg-[#B71C1C] border-b-4 border-black text-white flex items-center justify-center active:translate-y-0.5 active:border-b-2 rounded shadow-md touch-manipulation"><ChevronLeft className="w-7 h-7" /></button>
-                 <div className="w-11 h-11 flex flex-col items-center justify-center bg-zinc-900 rounded border-2 border-white/5 shadow-inner">
-                   <span className="text-[14px] font-black text-[#FFEB3B] leading-none">{stepsRemaining || '0'}</span>
-                   <span className="text-[5px] text-white/40 font-black uppercase tracking-tighter">のこり</span>
-                 </div>
-                 <button onClick={() => moveToOneStep(1, 0)} className="w-11 h-11 bg-[#B71C1C] border-b-4 border-black text-white flex items-center justify-center active:translate-y-0.5 active:border-b-2 rounded shadow-md touch-manipulation"><ChevronRight className="w-7 h-7" /></button>
-                 <div />
-                 <button onClick={() => moveToOneStep(0, 1)} className="w-11 h-11 bg-[#B71C1C] border-b-4 border-black text-white flex items-center justify-center active:translate-y-0.5 active:border-b-2 rounded shadow-md touch-manipulation"><ChevronDown className="w-7 h-7" /></button>
-                 <div />
+              <div className="flex flex-col gap-1">
+                <div className="grid grid-cols-3 gap-1.5 bg-black/80 p-1.5 border-2 border-[#3E2723] rounded shadow-inner">
+                   <div />
+                   <button onClick={() => { setAutoPath([]); moveToOneStep(0, -1); }} className="w-11 h-11 bg-[#B71C1C] border-b-4 border-black text-white flex items-center justify-center active:translate-y-0.5 active:border-b-2 rounded shadow-md touch-manipulation"><ChevronUp className="w-7 h-7" /></button>
+                   <div />
+                   <button onClick={() => { setAutoPath([]); moveToOneStep(-1, 0); }} className="w-11 h-11 bg-[#B71C1C] border-b-4 border-black text-white flex items-center justify-center active:translate-y-0.5 active:border-b-2 rounded shadow-md touch-manipulation"><ChevronLeft className="w-7 h-7" /></button>
+                   <div className="w-11 h-11 flex flex-col items-center justify-center bg-zinc-900 rounded border-2 border-white/5 shadow-inner">
+                     <span className="text-[14px] font-black text-[#FFEB3B] leading-none">{stepsRemaining || '0'}</span>
+                     <span className="text-[5px] text-white/40 font-black uppercase tracking-tighter">のこり</span>
+                   </div>
+                   <button onClick={() => { setAutoPath([]); moveToOneStep(1, 0); }} className="w-11 h-11 bg-[#B71C1C] border-b-4 border-black text-white flex items-center justify-center active:translate-y-0.5 active:border-b-2 rounded shadow-md touch-manipulation"><ChevronRight className="w-7 h-7" /></button>
+                   <div />
+                   <button onClick={() => { setAutoPath([]); moveToOneStep(0, 1); }} className="w-11 h-11 bg-[#B71C1C] border-b-4 border-black text-white flex items-center justify-center active:translate-y-0.5 active:border-b-2 rounded shadow-md touch-manipulation"><ChevronDown className="w-7 h-7" /></button>
+                   <div />
+                </div>
+                {stepsRemaining > 0 && !isMoving && (
+                  <button
+                    onClick={() => { setStepsRemaining(0); setAutoPath([]); }}
+                    className="w-full py-1 bg-zinc-700 border-b-2 border-black text-white text-[9px] font-black uppercase rounded active:translate-y-0.5 active:border-none touch-manipulation"
+                  >
+                    ターン終了
+                  </button>
+                )}
               </div>
            </div>
         </div>
