@@ -603,6 +603,34 @@ const PixelCharacter = React.memo(function PixelCharacter({
   );
 });
 
+const DICE_PIPS: Record<number, [number, number][]> = {
+  1: [[1,1]],
+  2: [[0,0],[2,2]],
+  3: [[0,0],[1,1],[2,2]],
+  4: [[0,0],[0,2],[2,0],[2,2]],
+  5: [[0,0],[0,2],[1,1],[2,0],[2,2]],
+  6: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]],
+};
+
+const DiceFace = ({ value, rolling }: { value: number; rolling: boolean }) => {
+  if (rolling) return (
+    <div className="w-11 h-11 bg-white rounded-lg flex items-center justify-center border-2 border-gray-200 shadow-inner">
+      <span className="text-lg font-black text-gray-400">?</span>
+    </div>
+  );
+  const pips = DICE_PIPS[Math.min(6, Math.max(1, value))] ?? DICE_PIPS[1];
+  return (
+    <div className="w-11 h-11 bg-white rounded-lg relative shadow-md border-2 border-gray-100 p-1.5">
+      <div className="relative w-full h-full">
+        {pips.map(([r, c], i) => (
+          <div key={i} className="absolute bg-gray-900 rounded-full"
+            style={{ width: '27%', height: '27%', top: `${r * 33 + 3}%`, left: `${c * 33 + 3}%` }} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const PixelHeli = ({ size = "w-full h-full" }: { size?: string }) => (
   <motion.div 
     animate={{ y: [0, -2, 0] }} 
@@ -1449,31 +1477,33 @@ export default function App() {
       setScoutFixedRoll(false);
       addLog('登山家：精密スキャン（出目を6に固定）', 'success');
     }
-    setVisualRoll(rawRoll);
     setIsRolling(false);
-    
+
     // Calculate Bonuses
     let jobBonus = selectedJob === 'scout' ? 1 : 0;
-    
-    // Type Penalty: -1 die step per unique sub-item type (excluding egg)
-    const typePenaltyVal = uniqueSubItemTypes;
+
+    // Weight Penalty: -1 step per 2 units of weight, max -3
+    const weightPenaltyVal = Math.min(3, Math.floor(inventoryWeight / 2));
 
     // Final Calculation: min 1 guaranteed
-    const finalSteps = Math.max(1, rawRoll + jobBonus - typePenaltyVal);
+    const finalSteps = Math.max(1, rawRoll + jobBonus - weightPenaltyVal);
+
+    // Dice face shows final steps (not raw roll) so players aren't confused
+    setVisualRoll(Math.min(6, finalSteps));
 
     setLastRollDetails({
       raw: rawRoll,
-      weightPenalty: typePenaltyVal,
+      weightPenalty: weightPenaltyVal,
       jobBonus,
       final: finalSteps
     });
 
-    if (typePenaltyVal > 0) {
-      addLog(`種類ペナルティ：-${typePenaltyVal}`, 'warning');
+    if (weightPenaltyVal > 0) {
+      addLog(`荷物ペナルティ：-${weightPenaltyVal}（重量${inventoryWeight}）`, 'warning');
     }
 
     setStepsRemaining(finalSteps);
-    addLog(`移動：${finalSteps} (出目:${rawRoll} 職能:${jobBonus} 種類:-${typePenaltyVal})`, 'info');
+    addLog(`移動：${finalSteps} (出目:${rawRoll} 職能:${jobBonus} 荷物:-${weightPenaltyVal})`, 'info');
     playBeep(200, 0.05);
 
     const nextTurn = turnCount + 1;
@@ -1797,7 +1827,7 @@ export default function App() {
       } else {
         setBombs(survivingBombs);
       }
-  }, [isGameOver, isMoving, stepsRemaining, isRolling, selectedJob, scoutFixedRoll, uniqueSubItemTypes, turnCount, heliTurnsLeft, inventory.treasures, eggs, safeTurns, bombs, tiles, addLog]);
+  }, [isGameOver, isMoving, stepsRemaining, isRolling, selectedJob, scoutFixedRoll, inventoryWeight, turnCount, heliTurnsLeft, inventory.treasures, eggs, safeTurns, bombs, tiles, addLog]);
 
   const handleDeath = useCallback(() => {
     playDoomSE();
@@ -2691,14 +2721,13 @@ export default function App() {
                 className="absolute inset-0 z-10 w-full h-full touch-manipulation"
               />
               <motion.div
-                animate={isRolling ? { scale: [1, 1.3, 0.85, 1.1, 1], y: [0, -4, 2, -1, 0] } : { scale: 1, y: 0 }}
-                transition={isRolling ? { repeat: Infinity, duration: 0.14, ease: 'easeInOut' } : { duration: 0.2 }}
+                animate={isRolling ? { rotate: [0, -15, 15, -10, 10, 0], scale: [1, 1.15, 0.9, 1.05, 1] } : { rotate: 0, scale: 1 }}
+                transition={isRolling ? { repeat: Infinity, duration: 0.18, ease: 'easeInOut' } : { duration: 0.15 }}
                 style={{ willChange: 'transform' }}
-                className={`text-3xl leading-none drop-shadow-md ${isRolling ? 'text-black' : 'text-white font-black'}`}
               >
-                {['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][visualRoll]}
+                <DiceFace value={visualRoll} rolling={isRolling} />
               </motion.div>
-              <div className={`text-[8px] font-black uppercase mt-1 tracking-tighter ${isRolling ? 'text-black' : 'text-white text-shadow-sm'}`}>
+              <div className={`text-[8px] font-black uppercase mt-1.5 tracking-tighter ${isRolling ? 'text-black' : 'text-white/80'}`}>
                 {isRolling ? '抽出中...' : (stepsRemaining > 0 ? '移動中...' : 'ダイスを振る')}
               </div>
             </div>
@@ -2709,7 +2738,7 @@ export default function App() {
                  <>
                    <div className="flex gap-2 text-[7px] font-black leading-none">
                      <span className="text-white/60">出目:{lastRollDetails.raw}</span>
-                     <span className="text-[#FF5252]">-種類:{lastRollDetails.weightPenalty}</span>
+                     <span className="text-[#FF5252]">-荷物:{lastRollDetails.weightPenalty}</span>
                      <span className="text-cyan-400">+職能:{lastRollDetails.jobBonus}</span>
                    </div>
                    <div className="text-[12px] font-black text-[#FFEB3B] leading-none mt-1">移動歩数 {lastRollDetails.final}</div>
