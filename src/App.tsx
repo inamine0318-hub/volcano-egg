@@ -160,6 +160,29 @@ const playDoomSE = () => {
 
 type TileType = 'road' | 'wall' | 'egg' | 'vent' | 'spray' | 'repair_kit' | 'heli' | 'tank' | 'magma' | 'scale' | 'ore' | 'data' | 'remains' | 'gem' | 'document' | 'statue' | 'crystal' | 'cursed' | 'hole' | 'hidden_tank';
 
+const TILE_INFO: Partial<Record<TileType, { name: string; effect: string; color: string }>> = {
+  egg:         { name: '🥚 ドラゴンの卵',     effect: 'ミッション目標！拾ったら急いでヘリポートへ戻れ',       color: '#FFD600' },
+  heli:        { name: '🚁 ヘリポート',        effect: 'スタート＆脱出地点。卵を持ってここに戻ればクリア！',    color: '#4FC3F7' },
+  vent:        { name: '🌬️ 噴気孔',           effect: '通過するとスーツ耐久が追加で減少する危険地帯',         color: '#FF7043' },
+  spray:       { name: '💧 水蒸気',           effect: '通過するとスーツ耐久が少し回復するラッキーマス',        color: '#81D4FA' },
+  repair_kit:  { name: '🔧 修理キット',       effect: '拾うとスーツ耐久を大きく回復できる',                   color: '#A5D6A7' },
+  tank:        { name: '🫁 酸素タンク',       effect: '拾うとタンクを1つ入手。タンクボタンでスーツ回復+40%', color: '#FFB74D' },
+  hidden_tank: { name: '🫁 隠し酸素タンク',  effect: '地中に埋まったタンク。地質学者は最初から見える',       color: '#FFB74D' },
+  scale:       { name: '🐉 ドラゴンの鱗',    effect: 'サブアイテム。難易度ふつう以上でクリアに必要',          color: '#FFEB3B' },
+  ore:         { name: '💎 貴重な鉱石',       effect: 'サブアイテム。難易度ふつう以上でクリアに必要',          color: '#4FC3F7' },
+  data:        { name: '📡 調査データ',       effect: 'サブアイテム。難易度ふつう以上でクリアに必要',          color: '#81C784' },
+  gem:         { name: '💍 宝石',             effect: '高価値のお宝。持ち帰るとスコアUP（重量小）',           color: '#F48FB1' },
+  document:    { name: '📜 古文書',           effect: 'お宝アイテム。持ち帰るとスコアUP',                     color: '#CE93D8' },
+  statue:      { name: '🗿 石像',             effect: 'お宝だが重い！持ちすぎると移動歩数にペナルティ',        color: '#BCAAA4' },
+  crystal:     { name: '🔮 クリスタル',       effect: 'お宝アイテム。持ち帰るとスコアUP',                     color: '#80DEEA' },
+  cursed:      { name: '☠️ 呪いのアイテム',  effect: '拾うとデバフ発生！HPやスーツに悪影響あり',             color: '#EF9A9A' },
+  wall:        { name: '🪨 岩壁',             effect: '通過不可。エンジニアのスキルで破壊できる',              color: '#8D6E63' },
+  magma:       { name: '🌋 マグマ壁',         effect: '通過不可。ROBOTのスキルで岩場に変換できる',             color: '#FF5722' },
+  hole:        { name: '🕳️ 落とし穴',        effect: '通過不可の穴。迂回が必要',                             color: '#424242' },
+  remains:     { name: '💀 前回の遺留品',     effect: '前回ゲームオーバーした地点。アイテムが残っている',      color: '#B0BEC5' },
+  road:        { name: '🟫 道',               effect: '通れるマス。点滅している場合は不安定で崩れる危険あり',  color: '#795548' },
+};
+
 interface Treasure {
   id: string;
   name: string;
@@ -959,6 +982,8 @@ export default function App() {
   const [showDropModal, setShowDropModal] = useState(false);
   const [showSystemMenu, setShowSystemMenu] = useState(false);
   const [showHowTo, setShowHowTo] = useState(false);
+  const [tilePopup, setTilePopup] = useState<{ name: string; effect: string; color: string } | null>(null);
+  const tilePopupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showRanking, setShowRanking] = useState(false);
   const [skillAvailable, setSkillAvailable] = useState(true);
   const [skillActiveTurns, setSkillActiveTurns] = useState(0);
@@ -2322,6 +2347,25 @@ export default function App() {
           </div>
       </header>
 
+      {/* Tile Info Popup */}
+      <AnimatePresence>
+        {tilePopup && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute bottom-[180px] left-2 right-2 z-50 pointer-events-none"
+          >
+            <div className="bg-black/90 border-2 p-2 flex items-start gap-2 shadow-xl" style={{ borderColor: tilePopup.color }}>
+              <div className="flex flex-col gap-0.5 flex-1">
+                <span className="text-[9px] font-black" style={{ color: tilePopup.color }}>{tilePopup.name}</span>
+                <span className="text-[7px] text-white/80 leading-relaxed">{tilePopup.effect}</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Central Message Overlay */}
       <AnimatePresence>
         {centralMessage && (
@@ -2447,6 +2491,13 @@ export default function App() {
                     const sdx = Math.sign(tile.x - playerPos.x);
                     const sdy = Math.sign(tile.y - playerPos.y);
                     moveToOneStep(sdx, sdy);
+                  } else {
+                    const info = TILE_INFO[tile.type];
+                    if (info) {
+                      if (tilePopupTimerRef.current) clearTimeout(tilePopupTimerRef.current);
+                      setTilePopup(info);
+                      tilePopupTimerRef.current = setTimeout(() => setTilePopup(null), 2500);
+                    }
                   }
                 }}
                 onTouchEnd={(e) => {
