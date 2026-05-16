@@ -2295,7 +2295,7 @@ export default function App() {
              {/* Mini HP Bar Section */}
              <div className="flex-1 min-w-0">
                <div className="flex justify-between items-baseline mb-0.5">
-                  <span className="text-[8px] text-white/50 font-bold uppercase">スーツ耐久値 (Suit)</span>
+                  <span className="text-[8px] text-white/50 font-bold uppercase">🔥 スーツ耐久値</span>
                   <span className={`text-[10px] font-black ${suitDisplayPercent < 30 ? 'text-white animate-pulse' : 'text-white/80'}`}>
                     {Math.round(suitCondition)}%
                   </span>
@@ -2311,7 +2311,7 @@ export default function App() {
                   />
                </div>
                <div className="flex justify-between items-baseline mb-0.5 leading-none">
-                  <span className="text-[8px] text-white/80 font-bold uppercase leading-none">生体HP (Biometric)</span>
+                  <span className="text-[8px] text-white/80 font-bold uppercase leading-none">❤️ HP</span>
                   <span className={`text-[10px] font-black leading-none ${hp < 30 ? 'text-white animate-pulse' : 'text-white'}`}>
                     {Math.round(hp)}
                   </span>
@@ -2662,7 +2662,17 @@ export default function App() {
                <span className="text-[8px] text-white/40 font-black uppercase tracking-[0.05em]">回収品</span>
                <div className="flex flex-col items-end leading-tight shrink-0 pl-1">
                  <span className="text-[9px] text-cyan-400 font-black whitespace-nowrap">価値 {inventoryValue}</span>
-                 <span className="text-[9px] text-[#FF5252] font-black whitespace-nowrap">種類 {uniqueSubItemTypes}</span>
+                 {getRequiredSubItems(difficulty) > 0 ? (
+                   uniqueSubItemTypes >= getRequiredSubItems(difficulty) ? (
+                     <span className="text-[9px] text-green-400 font-black whitespace-nowrap">条件✅クリア可</span>
+                   ) : (
+                     <span className="text-[9px] text-[#FF5252] font-black whitespace-nowrap animate-pulse">
+                       あと{getRequiredSubItems(difficulty) - uniqueSubItemTypes}種類必要
+                     </span>
+                   )
+                 ) : (
+                   <span className="text-[9px] text-green-400 font-black whitespace-nowrap">条件✅クリア可</span>
+                 )}
                </div>
             </div>
             <div className="flex-1 overflow-y-auto scrollbar-hide space-y-1">
@@ -2691,9 +2701,15 @@ export default function App() {
 
           {/* Center: Dice / Move (Col 4) */}
           <div className="col-span-4 flex flex-col gap-1.5">
+            {turnCount === 0 && stepsRemaining === 0 && !isRolling && (
+              <div className="text-center text-[8px] text-[#FFD600] font-black animate-bounce leading-none mb-0.5">
+                ↓ まずここを押す！
+              </div>
+            )}
             <div className={`flex-1 border-b-4 rounded-md flex flex-col items-center justify-center relative overflow-hidden transition-all
               ${isRolling ? 'bg-[#FFEB3B] border-black scale-95' : 'bg-[#B71C1C] border-black shadow-[0_6px_0_#3E2723] active:translate-y-1 active:shadow-[0_2px_0_#3E2723]'}
               ${stepsRemaining > 0 ? 'opacity-30' : ''}
+              ${turnCount === 0 && stepsRemaining === 0 && !isRolling ? 'ring-2 ring-[#FFD600] ring-offset-1 ring-offset-black animate-pulse' : ''}
             `}>
               <button 
                 onClick={rollDice}
@@ -3103,6 +3119,12 @@ export default function App() {
                     onClick={() => selectJob(job.id)}
                     className="bg-[#3E2723]/40 border-2 border-[#5D4037] p-3 flex flex-col gap-2 relative overflow-hidden active:bg-[#5D4037]/60 group"
                   >
+                    {/* Beginner badge for leader */}
+                    {job.id === 'leader' && (
+                      <div className="absolute top-2 left-2 bg-green-600 text-white text-[6px] font-black px-1.5 py-0.5 rounded-full z-10">
+                        🔰 初心者おすすめ
+                      </div>
+                    )}
                     {/* Difficulty Stars */}
                     <div className="absolute top-2 right-2 flex gap-0.5">
                       {[0, 1, 2, 3, 4].map((starIdx) => (
