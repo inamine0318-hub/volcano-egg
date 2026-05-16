@@ -958,6 +958,7 @@ export default function App() {
   }, [bombs]);
   const [showDropModal, setShowDropModal] = useState(false);
   const [showSystemMenu, setShowSystemMenu] = useState(false);
+  const [showHowTo, setShowHowTo] = useState(false);
   const [showRanking, setShowRanking] = useState(false);
   const [skillAvailable, setSkillAvailable] = useState(true);
   const [skillActiveTurns, setSkillActiveTurns] = useState(0);
@@ -2312,6 +2313,13 @@ export default function App() {
                T:{turnCount}
              </div>
           </div>
+          {/* Current Objective */}
+          <div className={`mt-0.5 flex items-center gap-1.5 px-1 py-0.5 rounded-sm border ${eggs > 0 ? 'bg-orange-500/20 border-orange-500/50' : 'bg-[#FFD600]/10 border-[#FFD600]/30'}`}>
+            <span className="text-[8px]">{eggs > 0 ? '🚁' : '🥚'}</span>
+            <span className={`text-[8px] font-black uppercase tracking-tight ${eggs > 0 ? 'text-orange-300' : 'text-[#FFD600]'}`}>
+              {eggs > 0 ? 'ヘリポート(左下)まで帰還せよ！' : '山頂(右上)の卵を確保せよ'}
+            </span>
+          </div>
       </header>
 
       {/* Central Message Overlay */}
@@ -2910,8 +2918,14 @@ export default function App() {
                   <p className="text-[#FF5252] font-black leading-none uppercase tracking-tighter">8ターン後に火山活動が激化</p>
                   <p className="text-white/40 italic">* スタート地点は安全ではありません。迅速な移動を推奨します。</p>
                 </div>
-                <button 
-                   onClick={() => setShowBriefing(false)} 
+                <button
+                   onClick={() => setShowHowTo(true)}
+                   className="w-full py-2 mb-2 bg-zinc-800 text-[#FFD600] font-black uppercase text-[9px] border-b-4 border-black active:translate-y-1 active:border-none"
+                >
+                  ❓ 遊び方を見る
+                </button>
+                <button
+                   onClick={() => setShowBriefing(false)}
                    className="w-full py-3 bg-[#D32F2F] text-white font-black uppercase text-xs border-b-4 border-black active:translate-y-1 active:border-none"
                 >
                   作戦開始
@@ -3152,13 +3166,92 @@ export default function App() {
                    <Users size={14} /> 職業を選び直す
                  </button>
 
-                 <button 
+                 <button
+                   onClick={() => { setShowHowTo(true); setShowSystemMenu(false); }}
+                   className="w-full py-3 bg-zinc-700 text-[#FFD600] text-[9px] font-black uppercase border-b-4 border-black active:translate-y-1 active:border-none flex items-center justify-center gap-2"
+                 >
+                   ❓ 遊び方を確認する
+                 </button>
+                 <button
                    onClick={() => setShowSystemMenu(false)}
                    className="w-full py-3 bg-zinc-800 text-white text-[8px] font-black uppercase border-b-4 border-black active:translate-y-1 active:border-none"
                  >
                    戻る
                  </button>
                </div>
+            </div>
+          </motion.div>
+        )}
+        {showHowTo && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/95 z-[400] flex items-center justify-center p-4 backdrop-blur-sm"
+          >
+            <div className="bg-[#1A110D] border-4 border-[#FFD600] w-full max-w-sm shadow-[0_8px_0_#000] flex flex-col max-h-[90vh]">
+              <div className="p-3 bg-[#FFD600] flex items-center justify-between shrink-0">
+                <h2 className="text-[11px] font-black text-black uppercase tracking-widest">❓ 遊び方</h2>
+                <button onClick={() => setShowHowTo(false)} className="text-black font-black text-[10px] px-2 py-0.5 bg-black/20 active:bg-black/40">✕</button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 text-[7px] text-white/90 leading-relaxed font-bold scrollbar-hide">
+
+                <section>
+                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">🎯 ゴール</h3>
+                  <p>右上の山頂にある<span className="text-[#FFD600]">ドラゴンの卵🥚</span>を拾い、左下の<span className="text-cyan-400">ヘリポート(H)</span>まで持ち帰ればクリア！</p>
+                </section>
+
+                <section>
+                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">🎲 基本の流れ</h3>
+                  <ol className="space-y-1 list-none">
+                    <li>① <span className="text-[#FFD600]">ダイスを振る</span>→出た数だけ移動できる歩数を獲得</li>
+                    <li>② <span className="text-[#FFD600]">矢印ボタン</span>で1マスずつ移動する</li>
+                    <li>③ 歩数を使い切ったら次のターンへ</li>
+                  </ol>
+                </section>
+
+                <section>
+                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">❤️ リソース管理</h3>
+                  <ul className="space-y-1">
+                    <li>🟢 <span className="text-emerald-400">スーツ耐久値</span>…移動1歩ごとに-2%。0になるとHPが減り始める</li>
+                    <li>🔴 <span className="text-red-400">HP</span>…0になるとゲームオーバー</li>
+                    <li>🟠 <span className="text-orange-400">酸素タンク</span>…使うとスーツ耐久を+40%回復。大事に使おう</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">⚠️ 危険要素</h3>
+                  <ul className="space-y-1">
+                    <li>💣 <span className="text-red-400">火山弾</span>…数字で着弾タイミングを予告。その場にいるとダメージ</li>
+                    <li>🌊 <span className="text-orange-400">溶岩上昇</span>…卵を拾った後8ターンでヘリが離陸する！急いで戻れ</li>
+                    <li>💨 <span className="text-gray-400">煙・熱波</span>…視界が悪くなったりスーツが余計に減ったりする</li>
+                    <li>⬜ <span className="text-white/60">不安定な床</span>…通過後に崩れて通れなくなる</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">🏆 勝利条件（難易度別）</h3>
+                  <ul className="space-y-1">
+                    <li><span className="text-white/50">かんたん</span>…卵だけ持ち帰ればOK</li>
+                    <li><span className="text-cyan-400">ふつう</span>…卵 + サブアイテム1種類（鉱石・鱗・データのどれか1つ）</li>
+                    <li><span className="text-orange-400">むずかしい</span>…卵 + サブアイテム2種類</li>
+                    <li><span className="text-[#FF5252]">極限</span>…卵 + サブアイテム3種類すべて</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h3 className="text-[#FFD600] font-black uppercase mb-1 text-[8px]">💡 コツ</h3>
+                  <ul className="space-y-1">
+                    <li>・初めてなら<span className="text-white/70">リーダー</span>か<span className="text-white/70">軍人</span>がオススメ</li>
+                    <li>・スーツ耐久が30%を切ったらタンクを使おう</li>
+                    <li>・卵を拾ったらすぐ帰還ルートを確認！</li>
+                  </ul>
+                </section>
+              </div>
+              <button
+                onClick={() => setShowHowTo(false)}
+                className="m-3 py-3 bg-[#D32F2F] text-white text-[10px] font-black uppercase border-b-4 border-black active:translate-y-1 active:border-none shrink-0"
+              >
+                わかった！
+              </button>
             </div>
           </motion.div>
         )}
