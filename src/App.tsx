@@ -1471,17 +1471,17 @@ export default function App() {
     setTimeout(() => playSE(1200, 'square', 0.05, 0.05), 100);
     setTimeout(() => playSE(1400, 'square', 0.05, 0.05), 200);
 
-    // Dice animation loop
+    // Dice animation loop — keep reference so we can force-clear after await
     const rollDuration = 250;
     const startTime = Date.now();
-    const animInterval = setInterval(() => {
+    let animIntervalId: ReturnType<typeof setInterval>;
+    animIntervalId = setInterval(() => {
       setVisualRoll(Math.floor(Math.random() * 6) + 1);
-      if (Date.now() - startTime > rollDuration) {
-        clearInterval(animInterval);
-      }
+      if (Date.now() - startTime > rollDuration) clearInterval(animIntervalId);
     }, 30);
 
     await new Promise(resolve => setTimeout(resolve, rollDuration));
+    clearInterval(animIntervalId); // force-stop before writing final value
 
     let rawRoll = Math.floor(Math.random() * 6) + 1;
     if (scoutFixedRoll) {
@@ -1494,28 +1494,28 @@ export default function App() {
     // Calculate Bonuses
     let jobBonus = selectedJob === 'scout' ? 1 : 0;
 
-    // Weight Penalty: -1 step per 2 units of weight, max -3
-    const weightPenaltyVal = Math.min(3, Math.floor(inventoryWeight / 2));
+    // Type Penalty: -1 step per unique sub-item type held (max -3)
+    const typePenaltyVal = uniqueSubItemTypes;
 
     // Final Calculation: min 1 guaranteed
-    const finalSteps = Math.max(1, rawRoll + jobBonus - weightPenaltyVal);
+    const finalSteps = Math.max(1, rawRoll + jobBonus - typePenaltyVal);
 
-    // Dice face shows final steps (not raw roll) so players aren't confused
+    // Dice face shows final steps so it matches actual movement
     setVisualRoll(Math.min(6, finalSteps));
 
     setLastRollDetails({
       raw: rawRoll,
-      weightPenalty: weightPenaltyVal,
+      weightPenalty: typePenaltyVal,
       jobBonus,
       final: finalSteps
     });
 
-    if (weightPenaltyVal > 0) {
-      addLog(`荷物ペナルティ：-${weightPenaltyVal}（重量${inventoryWeight}）`, 'warning');
+    if (typePenaltyVal > 0) {
+      addLog(`荷物ペナルティ：-${typePenaltyVal}（${typePenaltyVal}種類所持）`, 'warning');
     }
 
     setStepsRemaining(finalSteps);
-    addLog(`移動：${finalSteps} (出目:${rawRoll} 職能:${jobBonus} 荷物:-${weightPenaltyVal})`, 'info');
+    addLog(`移動：${finalSteps} (出目:${rawRoll} 職能:${jobBonus} 種類:-${typePenaltyVal})`, 'info');
     playBeep(200, 0.05);
 
     const nextTurn = turnCount + 1;
@@ -1839,7 +1839,7 @@ export default function App() {
       } else {
         setBombs(survivingBombs);
       }
-  }, [isGameOver, isMoving, stepsRemaining, isRolling, selectedJob, scoutFixedRoll, inventoryWeight, turnCount, heliTurnsLeft, inventory.treasures, eggs, safeTurns, bombs, tiles, addLog]);
+  }, [isGameOver, isMoving, stepsRemaining, isRolling, selectedJob, scoutFixedRoll, uniqueSubItemTypes, turnCount, heliTurnsLeft, inventory.treasures, eggs, safeTurns, bombs, tiles, addLog]);
 
   const handleDeath = useCallback(() => {
     playDoomSE();
@@ -2760,7 +2760,7 @@ export default function App() {
                  <>
                    <div className="flex gap-2 text-[7px] font-black leading-none">
                      <span className="text-white/60">出目:{lastRollDetails.raw}</span>
-                     <span className="text-[#FF5252]">-荷物:{lastRollDetails.weightPenalty}</span>
+                     <span className="text-[#FF5252]">-種類:{lastRollDetails.weightPenalty}</span>
                      <span className="text-cyan-400">+職能:{lastRollDetails.jobBonus}</span>
                    </div>
                    <div className="text-[12px] font-black text-[#FFEB3B] leading-none mt-1">移動歩数 {lastRollDetails.final}</div>
@@ -3384,6 +3384,7 @@ export default function App() {
                     <li>② <span className="text-[#FFD600]">矢印ボタン</span>で1マスずつ移動する</li>
                     <li>③ 歩数を使い切ったら次のターンへ</li>
                   </ol>
+                  <p className="mt-2 text-white/70">⚠️ サブアイテム（鉱石・鱗・データ）を<span className="text-[#FF5252]">異なる種類</span>持つほど歩数が減る！（1種類につき-1歩）</p>
                 </section>
 
                 <section>
@@ -3421,6 +3422,7 @@ export default function App() {
                     <li>・初めてなら<span className="text-white/70">リーダー</span>か<span className="text-white/70">軍人</span>がオススメ</li>
                     <li>・スーツ耐久が30%を切ったらタンクを使おう</li>
                     <li>・卵を拾ったらすぐ帰還ルートを確認！</li>
+                    <li>・歩数が足りなくなったら<span className="text-[#FF5252]">捨てる</span>ボタンでアイテムを捨てて歩数を回復</li>
                     <li>・<span className="text-[#FFD600]">マップのタイルをタップ</span>するとそのマスの説明が表示されるよ！</li>
                   </ul>
                 </section>
