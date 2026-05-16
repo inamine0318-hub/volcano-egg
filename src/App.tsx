@@ -704,29 +704,41 @@ const PixelRock = React.memo(function PixelRock() {
   return (
     <svg viewBox="0 0 16 16" className="w-full h-full" style={{ imageRendering: 'pixelated' }}>
       <rect width="16" height="16" fill="#795548" />
+      {/* grain marks */}
       <rect x="2" y="3" width="2" height="1" fill="#5D4037" />
       <rect x="10" y="5" width="3" height="1" fill="#3E2723" />
       <rect x="4" y="10" width="3" height="1" fill="#5D4037" />
       <rect x="12" y="11" width="1" height="2" fill="#3E2723" />
       <rect x="2" y="13" width="4" height="1" fill="#3E2723" />
-      <rect x="1" y="1" width="1" height="1" fill="#8D6E63" opacity="0.3" />
-      <rect x="14" y="14" width="1" height="1" fill="#8D6E63" opacity="0.3" />
+      <rect x="7" y="2" width="1" height="3" fill="#4A2C20" opacity="0.5" />
+      <rect x="13" y="7" width="2" height="1" fill="#5D3020" opacity="0.4" />
+      {/* edge highlights for subtle depth */}
+      <rect x="0" y="0" width="16" height="1" fill="#8D6E63" opacity="0.25" />
+      <rect x="0" y="0" width="1" height="16" fill="#8D6E63" opacity="0.18" />
+      <rect x="15" y="0" width="1" height="16" fill="#3E2723" opacity="0.25" />
+      <rect x="0" y="15" width="16" height="1" fill="#3E2723" opacity="0.25" />
     </svg>
   );
 });
 
 const PixelMagma = React.memo(function PixelMagma() {
   return (
-    <div className="magma-tile">
+    <div className="magma-tile absolute inset-0">
       <svg
         viewBox="0 0 16 16"
-        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.75 }}
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.85 }}
       >
-        <circle cx="3"  cy="12" r="1.5" fill="#FFEE58" />
-        <circle cx="8"  cy="13" r="1.2" fill="#FFF176" />
-        <circle cx="13" cy="11" r="1.4" fill="#FFEE58" />
-        <circle cx="6"  cy="9"  r="0.9" fill="#FFF9C4" />
-        <circle cx="11" cy="7"  r="0.8" fill="#FFF176" />
+        {/* lava cracks */}
+        <line x1="2" y1="10" x2="6" y2="15" stroke="#FF8F00" strokeWidth="0.6" opacity="0.5" />
+        <line x1="9" y1="7"  x2="14" y2="13" stroke="#FF8F00" strokeWidth="0.6" opacity="0.4" />
+        <line x1="0" y1="5"  x2="4"  y2="10" stroke="#FF6F00" strokeWidth="0.4" opacity="0.35" />
+        {/* glow bubbles */}
+        <circle cx="3"  cy="12" r="2.0" fill="#FFF176" />
+        <circle cx="8"  cy="13" r="1.6" fill="#FFEE58" />
+        <circle cx="13" cy="11" r="1.8" fill="#FFF176" />
+        <circle cx="6"  cy="9"  r="1.2" fill="#FFF9C4" />
+        <circle cx="11" cy="7"  r="1.1" fill="#FFEE58" />
+        <circle cx="1"  cy="15" r="1.0" fill="#FFD740" opacity="0.7" />
       </svg>
     </div>
   );
@@ -2459,8 +2471,10 @@ export default function App() {
           y: [0, 1, -1, 1, -1, 0]
         } : {}}
         transition={{ duration: 0.15, repeat: 2 }}
-        className="flex-grow relative overflow-auto bg-[#000] scroll-smooth scrollbar-hide"
+        className="flex-grow relative overflow-auto bg-[#050200] scroll-smooth scrollbar-hide"
       >
+        {/* Vignette overlay */}
+        <div className="absolute inset-0 z-10 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%)' }} />
         {/* Environment Overlays */}
         <AnimatePresence>
           {suitCondition <= 0 && (
@@ -2493,7 +2507,7 @@ export default function App() {
         </AnimatePresence>
 
         <div
-          className="grid gap-[1px] bg-[#3E2723]/30 p-1"
+          className="grid gap-[1px] bg-[#1A0800]/60 p-1"
           style={{
             gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
             gridAutoRows: '1fr',
@@ -2596,11 +2610,19 @@ export default function App() {
                   ${isTankSelectable ? 'ring-2 ring-inset ring-white z-10 cursor-pointer' : ''}
                   ${isRobotConvertSelectable ? 'cursor-pointer' : ''}
                   ${isParkourTarget ? 'ring-2 ring-inset ring-lime-400 z-10 cursor-pointer brightness-125' : ''}
-                  border-[0.5px] border-black/10
+                  border-[0.5px] border-black/25
                 `}
                 style={{
                   imageRendering: 'pixelated',
-                  backgroundColor: (isLava || tile.type === 'magma' || tile.type === 'wall') ? '#B71C1C' : tile.type === 'hole' ? '#000000' : '#795548',
+                  backgroundColor: isLava
+                    ? (tile.y % 2 === 0 ? '#C62828' : '#B71C1C')
+                    : tile.type === 'magma'
+                    ? ((tile.x + tile.y) % 2 === 0 ? '#C62828' : '#B71C1C')
+                    : tile.type === 'wall'
+                    ? ((tile.x + tile.y) % 2 === 0 ? '#3E1A1A' : '#4A2020')
+                    : tile.type === 'hole'
+                    ? '#050505'
+                    : '#795548',
                 }}
               >
                 {/* Visual Elements */}
@@ -3418,6 +3440,11 @@ export default function App() {
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .font-pixel { font-family: 'Press Start 2P', cursive; }
+        .magma-tile { animation: magma-glow 2.2s ease-in-out infinite; }
+        @keyframes magma-glow {
+          0%, 100% { opacity: 0.78; }
+          50% { opacity: 1.0; }
+        }
       `}</style>
       </div>
     </div>
