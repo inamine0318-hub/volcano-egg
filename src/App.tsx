@@ -2709,10 +2709,10 @@ export default function App() {
           })}
         </div>
       </motion.main>
-      <div className="text-center text-[9px] tracking-widest py-0.5 shrink-0" style={{ color: '#FF4444', opacity: 0.4 }}>↕ スクロール</div>
 
       {/* Mobile Footer Area */}
       <footer className="bg-[#000] border-t-2 border-[#FF0000]/30 z-30 shadow-2xl flex flex-col p-1.5 gap-1.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] shrink-0">
+        <div className="text-center text-[9px] tracking-widest shrink-0" style={{ color: '#FFD600', opacity: 0.6 }}>↕ スクロール</div>
         {/* Row 1: Dashboard */}
         <div className="grid grid-cols-12 gap-2 h-24">
           
