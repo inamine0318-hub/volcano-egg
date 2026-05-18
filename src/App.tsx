@@ -2270,7 +2270,17 @@ export default function App() {
           addLog('地質学者：地盤修復をキャンセルしました。', 'info');
         } else {
           setIsGeologistRepairActive(true);
-          addLog('地質学者：修復する崩壊マスを選択してください。', 'warning');
+          const collapsedTiles = tiles.filter(t => t.type === 'hole' && t.collapsed === true);
+          const adjacentCollapsed = collapsedTiles.filter(t =>
+            Math.abs(t.x - playerPos.x) + Math.abs(t.y - playerPos.y) === 1 && t.y < lavaLevel
+          );
+          if (collapsedTiles.length === 0) {
+            addLog('化石ハンター：まだ崩壊マスがありません。不安定なマス（△）を踏むと崩壊します。', 'info');
+          } else if (adjacentCollapsed.length === 0) {
+            addLog('化石ハンター：崩壊マスが隣接していません。崩壊マスの隣に移動してから使いましょう。', 'warning');
+          } else {
+            addLog('化石ハンター：修復する崩壊マスを選択してください。', 'warning');
+          }
           playBeep(400, 0.1);
         }
         break;
