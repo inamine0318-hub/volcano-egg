@@ -482,6 +482,9 @@ const PixelCharacter = React.memo(function PixelCharacter({
             <rect x="12" y="1" width="1" height="3" fill="#E65100" />
             {/* Helmet highlight */}
             <rect x="5" y="1" width="3" height="1" fill="#FFCC02" />
+            {/* Cross mark */}
+            <rect x="7" y="1" width="2" height="3" fill="#E53935" />
+            <rect x="6" y="2" width="4" height="1" fill="#E53935" />
             {/* Helmet brim */}
             <rect x="2" y="4" width="12" height="1" fill="#F57F17" />
             {/* Chin strap */}
@@ -494,11 +497,9 @@ const PixelCharacter = React.memo(function PixelCharacter({
             <rect x="5" y="6" width="1" height="3" fill="#D08850" />
             <rect x="10" y="6" width="1" height="3" fill="#C88040" />
 
-            {/* Safety goggles */}
-            <rect x="5" y="6" width="6" height="1" fill="#1A2838" />
-            <rect x="6" y="6" width="2" height="1" fill="#80CBC4" />
-            <rect x="6" y="6" width="1" height="1" fill="#B2DFDB" />
-            <rect x="9" y="6" width="2" height="1" fill="#80CBC4" />
+            {/* Eyes (black dots) */}
+            <rect x="7" y="6" width="1" height="1" fill="#1A1008" />
+            <rect x="9" y="6" width="1" height="1" fill="#1A1008" />
 
             {/* Smirk */}
             <rect x="7" y="8" width="3" height="1" fill="#CC7040" />
@@ -530,9 +531,11 @@ const PixelCharacter = React.memo(function PixelCharacter({
             <rect x="2" y="13" width="2" height="1" fill="#F5A870" />
             <rect x="12" y="13" width="2" height="1" fill="#F5A870" />
 
-            {/* Rock hammer (right hand) */}
-            <rect x="14" y="13" width="1" height="2" fill="#8B5A2A" />
-            <rect x="13" y="12" width="2" height="1" fill="#607878" />
+            {/* Shovel (right hand) */}
+            <rect x="14" y="9" width="1" height="4" fill="#8B5A2A" />
+            <rect x="13" y="12" width="3" height="1" fill="#78909C" />
+            <rect x="13" y="13" width="3" height="1" fill="#546E7A" />
+            <rect x="14" y="14" width="1" height="1" fill="#455A64" />
 
             {/* ── LEGS ── */}
             <rect x="4" y="14" width="3" height="1" fill="#546E7A" />
