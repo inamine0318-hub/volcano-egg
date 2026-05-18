@@ -167,7 +167,7 @@ const TILE_INFO: Partial<Record<TileType, { name: string; effect: string; color:
   spray:       { name: '💧 水蒸気',           effect: '通過するとスーツ耐久が少し回復するラッキーマス',        color: '#81D4FA' },
   repair_kit:  { name: '🔧 修理キット',       effect: '拾うとスーツ耐久を大きく回復できる',                   color: '#A5D6A7' },
   tank:        { name: '🫁 酸素タンク',       effect: '拾うとタンクを1つ入手。タンクボタンでスーツ回復+40%', color: '#FFB74D' },
-  hidden_tank: { name: '🫁 隠し酸素タンク',  effect: '地中に埋まったタンク。地質学者は最初から見える',       color: '#FFB74D' },
+  hidden_tank: { name: '🫁 隠し酸素タンク',  effect: '地中に埋まったタンク。踏むと取得できる',       color: '#FFB74D' },
   scale:       { name: '🐉 ドラゴンの鱗',    effect: 'サブアイテム。難易度ふつう以上でクリアに必要',          color: '#FFEB3B' },
   ore:         { name: '💎 貴重な鉱石',       effect: 'サブアイテム。難易度ふつう以上でクリアに必要',          color: '#4FC3F7' },
   data:        { name: '📡 調査データ',       effect: 'サブアイテム。難易度ふつう以上でクリアに必要',          color: '#81C784' },
@@ -210,6 +210,7 @@ interface Tile {
   durability?: number;
   magmaCooldown?: number; // Turns until magma cools back to road
   unstable?: boolean;
+  collapsed?: boolean;
 }
 
 interface LogEntry {
@@ -309,14 +310,14 @@ const JOBS: JobDefinition[] = [
   },
   {
     id: 'geologist',
-    name: '地質学者',
-    role: '地層調査 / フィールド研究',
-    description: '火山地帯のフィールド調査20年のベテラン研究者。地中の異変を感じ取る第六感を持つ。',
-    difficulty: 2,
-    ability: '隠しタンク位置が最初から見える / 地層スキャン(1回)で全マップ隠しアイテム開示',
-    recommend: '隠しアイテムを確実に回収してスコアを伸ばしたい人向け',
-    skillName: '地層スキャン',
-    skillText: '全マップの隠しアイテムを即座に開示する。1回限り。',
+    name: '地質学者（化石ハンター発掘家）',
+    role: 'フィールド発掘 / 地質調査',
+    description: '化石と鉱脈を追い求めるゲストキャラ。崩壊地形でも怯まない発掘のプロ。',
+    difficulty: 3,
+    ability: '崩壊したマスを通行可能に修復できる（2回）',
+    recommend: '崩壊マスを活用してショートカットを切り開きたい人向け',
+    skillName: '地盤修復',
+    skillText: '隣接する崩壊マスを選択して通行可能な岩場に修復する。2回まで使用可。',
     color: '#F9A825'
   },
 ];
@@ -473,59 +474,55 @@ const PixelCharacter = React.memo(function PixelCharacter({
           </g>
         ) : jobId === 'geologist' ? (
           <g>
-            {/* ── FIELD HAT (khaki explorer, same structure as fedora) ── */}
-            <rect x="5" y="0" width="6" height="1" fill="#5C4A28" />
-            <rect x="4" y="1" width="8" height="2" fill="#8B7050" />
-            <rect x="4" y="1" width="1" height="2" fill="#5C4A28" />
-            <rect x="11" y="1" width="1" height="2" fill="#5C4A28" />
-            <rect x="6" y="1" width="2" height="1" fill="#A89268" />
-
-            {/* Band + gold emblem */}
-            <rect x="4" y="3" width="8" height="1" fill="#2A1808" />
-            <rect x="10" y="3" width="1" height="1" fill="#C8A030" />
-
-            {/* Full-width brim */}
-            <rect x="0" y="4" width="16" height="1" fill="#7A6040" />
-            <rect x="1" y="4" width="5" height="1" fill="#9A8060" />
+            {/* ── YELLOW SAFETY HELMET ── */}
+            {/* Helmet dome */}
+            <rect x="4" y="0" width="8" height="1" fill="#F9A825" />
+            <rect x="3" y="1" width="10" height="3" fill="#F9A825" />
+            <rect x="3" y="1" width="1" height="3" fill="#FBC02D" />
+            <rect x="12" y="1" width="1" height="3" fill="#E65100" />
+            {/* Helmet highlight */}
+            <rect x="5" y="1" width="3" height="1" fill="#FFCC02" />
+            {/* Helmet brim */}
+            <rect x="2" y="4" width="12" height="1" fill="#F57F17" />
+            {/* Chin strap */}
+            <rect x="4" y="4" width="1" height="2" fill="#5D4037" />
+            <rect x="11" y="4" width="1" height="2" fill="#5D4037" />
 
             {/* ── FACE (y=5-8) ── */}
-            <rect x="5" y="5" width="6" height="1" fill="#B07040" />
+            <rect x="5" y="5" width="6" height="1" fill="#D08040" />
             <rect x="5" y="6" width="6" height="3" fill="#F5A870" />
             <rect x="5" y="6" width="1" height="3" fill="#D08850" />
             <rect x="10" y="6" width="1" height="3" fill="#C88040" />
 
-            {/* Blue-tinted scientific glasses */}
+            {/* Safety goggles */}
             <rect x="5" y="6" width="6" height="1" fill="#1A2838" />
-            <rect x="6" y="6" width="2" height="1" fill="#90C8E8" />
-            <rect x="6" y="6" width="1" height="1" fill="#C0E8FF" />
-            <rect x="9" y="6" width="2" height="1" fill="#90C8E8" />
+            <rect x="6" y="6" width="2" height="1" fill="#80CBC4" />
+            <rect x="6" y="6" width="1" height="1" fill="#B2DFDB" />
+            <rect x="9" y="6" width="2" height="1" fill="#80CBC4" />
 
             {/* Smirk */}
             <rect x="7" y="8" width="3" height="1" fill="#CC7040" />
             <rect x="8" y="8" width="1" height="1" fill="#882020" />
 
-            {/* ── OLIVE FIELD JACKET (y=9-12) ── */}
-            <rect x="5" y="9" width="6" height="1" fill="#3A4830" />
+            {/* ── ORANGE HI-VIS VEST over dark shirt (y=9-12) ── */}
+            <rect x="5" y="9" width="6" height="1" fill="#E65100" />
+            <rect x="4" y="10" width="8" height="3" fill="#EF6C00" />
+            <rect x="4" y="10" width="1" height="3" fill="#FF8F00" />
+            <rect x="11" y="10" width="1" height="3" fill="#BF360C" />
 
-            <rect x="4" y="10" width="8" height="3" fill="#4A6040" />
-            <rect x="4" y="10" width="1" height="3" fill="#5C7850" />
-            <rect x="11" y="10" width="1" height="3" fill="#38482E" />
+            {/* Arms */}
+            <rect x="2" y="10" width="2" height="3" fill="#EF6C00" />
+            <rect x="2" y="10" width="1" height="3" fill="#FF8F00" />
+            <rect x="12" y="10" width="2" height="3" fill="#EF6C00" />
+            <rect x="13" y="10" width="1" height="3" fill="#BF360C" />
 
-            {/* L arm: highlight / R arm: shadow */}
-            <rect x="2" y="10" width="2" height="3" fill="#4A6040" />
-            <rect x="2" y="10" width="1" height="3" fill="#5C7850" />
-            <rect x="12" y="10" width="2" height="3" fill="#4A6040" />
-            <rect x="13" y="10" width="1" height="3" fill="#38482E" />
+            {/* Vest lapels + black shirt */}
+            <rect x="6" y="10" width="1" height="2" fill="#BF360C" />
+            <rect x="9" y="10" width="1" height="2" fill="#BF360C" />
+            <rect x="7" y="10" width="2" height="2" fill="#212121" />
 
-            {/* Lapels + shirt + gold badge */}
-            <rect x="6" y="10" width="1" height="2" fill="#38482E" />
-            <rect x="9" y="10" width="1" height="2" fill="#38482E" />
-            <rect x="7" y="10" width="2" height="2" fill="#E8E0C8" />
-            <rect x="5" y="10" width="1" height="1" fill="#C8A030" />
-
-            {/* Chest pocket + yellow pencil */}
-            <rect x="5" y="11" width="2" height="2" fill="#38482E" />
-            <rect x="5" y="11" width="1" height="1" fill="#F9A825" />
+            {/* Reflective stripe */}
+            <rect x="4" y="12" width="8" height="1" fill="#FFF176" />
 
             {/* ── BELT ── */}
             <rect x="4" y="13" width="8" height="1" fill="#2A1808" />
@@ -1041,8 +1038,9 @@ export default function App() {
   const [scoutExtraStepAvailable, setScoutExtraStepAvailable] = useState(false);
   const [robotJumpUses, setRobotJumpUses] = useState(2);
   const [isRobotConvertActive, setIsRobotConvertActive] = useState(false);
+  const [geologistRepairUses, setGeologistRepairUses] = useState(2);
+  const [isGeologistRepairActive, setIsGeologistRepairActive] = useState(false);
   const [treasureHunterJumpUses, setTreasureHunterJumpUses] = useState(3);
-  const [geologistScanUsed, setGeologistScanUsed] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLDivElement>(null);
@@ -1063,8 +1061,10 @@ export default function App() {
     setHasRemoteTankSkill(true);
     setScoutExtraStepAvailable(false);
     setRobotJumpUses(2);
+    setIsRobotConvertActive(false);
+    setGeologistRepairUses(2);
+    setIsGeologistRepairActive(false);
     setTreasureHunterJumpUses(3);
-    setGeologistScanUsed(false);
 
     let startHp = BASE_INITIAL_HP + (persistent.upgrades.hp * 10);
     let startTanks = 3 + Math.floor(persistent.upgrades.tanks / 2);
@@ -1465,6 +1465,7 @@ export default function App() {
     
     setIsRolling(true);
     setIsRobotConvertActive(false);
+    setIsGeologistRepairActive(false);
     startBGM();
     setScoutExtraStepAvailable(selectedJob === 'scout'); // Reset extra step for Scout
     playSE(1000, 'square', 0.05, 0.05); // Pip
@@ -1941,7 +1942,7 @@ export default function App() {
       playArp([523, 659, 784, 1047]);
 
       if (current && current.unstable) {
-        setTiles(prev => prev.map(t => t.id === current!.id ? { ...t, type: 'hole', unstable: false } : t));
+        setTiles(prev => prev.map(t => t.id === current!.id ? { ...t, type: 'hole', unstable: false, collapsed: true } : t));
         playSE(150, 'sawtooth', 0.2, 0.1);
       }
       setIsMoving(true);
@@ -1996,7 +1997,7 @@ export default function App() {
 
     // Handle floor crumbling after passing
     if (current && current.unstable) {
-      setTiles(prev => prev.map(t => t.id === current.id ? { ...t, type: 'hole', unstable: false } : t));
+      setTiles(prev => prev.map(t => t.id === current.id ? { ...t, type: 'hole', unstable: false, collapsed: true } : t));
       playSE(150, 'sawtooth', 0.2, 0.1); // Collapse sound
     }
 
@@ -2195,8 +2196,9 @@ export default function App() {
     setScoutExtraStepAvailable(false);
     setRobotJumpUses(2);
     setIsRobotConvertActive(false);
+    setGeologistRepairUses(2);
+    setIsGeologistRepairActive(false);
     setTreasureHunterJumpUses(3);
-    setGeologistScanUsed(false);
     setIsSettingTank(false);
     setLastRollDetails(null);
     setTiles(initialMap);
@@ -2259,14 +2261,15 @@ export default function App() {
         break;
       }
       case 'geologist': {
-        if (geologistScanUsed) break;
-        setGeologistScanUsed(true);
-        setSkillAvailable(false);
-        setTiles(prev => prev.map(t =>
-          t.type === 'hidden_tank' ? { ...t, type: 'tank', durability: 2 } : t
-        ));
-        addLog('地質学者：地層スキャン！全マップの隠し補給タンクを開示した！', 'success');
-        playArp([330, 440, 554, 659, 880]);
+        if (geologistRepairUses <= 0) break;
+        if (isGeologistRepairActive) {
+          setIsGeologistRepairActive(false);
+          addLog('地質学者：地盤修復をキャンセルしました。', 'info');
+        } else {
+          setIsGeologistRepairActive(true);
+          addLog('地質学者：修復する崩壊マスを選択してください。', 'warning');
+          playBeep(400, 0.1);
+        }
         break;
       }
     }
@@ -2529,6 +2532,10 @@ export default function App() {
               Math.abs(tile.x - playerPos.x) + Math.abs(tile.y - playerPos.y) === 1 &&
               (tile.type === 'wall' || tile.type === 'magma') && tile.y < lavaLevel;
 
+            const isGeologistRepairSelectable = isGeologistRepairActive && !isMoving && !isGameOver &&
+              Math.abs(tile.x - playerPos.x) + Math.abs(tile.y - playerPos.y) === 1 &&
+              tile.type === 'hole' && tile.collapsed === true && tile.y < lavaLevel;
+
             const isTechSelectable = isTechSkillActive && !isMoving && !isGameOver;
 
             const isTankSelectable = isSettingTank && !isMoving && !isGameOver &&
@@ -2568,6 +2575,12 @@ export default function App() {
                     setIsRobotConvertActive(false);
                     addLog('ロボット：マグマ壁を岩場に変換した！', 'success');
                     playArp([440, 659, 880]);
+                  } else if (isGeologistRepairSelectable) {
+                    setTiles(prev => prev.map(t => t.id === tile.id ? { ...t, type: 'road', collapsed: false } : t));
+                    setGeologistRepairUses(prev => prev - 1);
+                    setIsGeologistRepairActive(false);
+                    addLog('地質学者：崩壊した床を修復した！', 'success');
+                    playArp([440, 659, 880]);
                   } else if (isParkourTarget) {
                     const sdx = Math.sign(tile.x - playerPos.x);
                     const sdy = Math.sign(tile.y - playerPos.y);
@@ -2596,6 +2609,13 @@ export default function App() {
                     setIsRobotConvertActive(false);
                     addLog('ロボット：マグマ壁を岩場に変換した！', 'success');
                     playArp([440, 659, 880]);
+                  } else if (isGeologistRepairSelectable) {
+                    e.preventDefault();
+                    setTiles(prev => prev.map(t => t.id === tile.id ? { ...t, type: 'road', collapsed: false } : t));
+                    setGeologistRepairUses(prev => prev - 1);
+                    setIsGeologistRepairActive(false);
+                    addLog('地質学者：崩壊した床を修復した！', 'success');
+                    playArp([440, 659, 880]);
                   } else if (isParkourTarget) {
                     e.preventDefault();
                     const sdx = Math.sign(tile.x - playerPos.x);
@@ -2609,6 +2629,7 @@ export default function App() {
                   ${isTechSelectable ? 'ring-2 ring-inset ring-cyan-400 z-10 cursor-crosshair' : ''}
                   ${isTankSelectable ? 'ring-2 ring-inset ring-white z-10 cursor-pointer' : ''}
                   ${isRobotConvertSelectable ? 'cursor-pointer' : ''}
+                  ${isGeologistRepairSelectable ? 'cursor-pointer ring-2 ring-inset ring-yellow-300 z-10' : ''}
                   ${isParkourTarget ? 'ring-2 ring-inset ring-lime-400 z-10 cursor-pointer brightness-125' : ''}
                   border-[0.5px] border-black/25
                 `}
@@ -2631,13 +2652,12 @@ export default function App() {
                   <div className="absolute inset-0 z-10 pointer-events-none animate-pulse"
                        style={{ border: '2px solid #fb923c', boxShadow: 'inset 0 0 10px #fb923c, 0 0 6px #fb923c' }} />
                 )}
+                {isGeologistRepairSelectable && (
+                  <div className="absolute inset-0 z-10 pointer-events-none animate-pulse"
+                       style={{ border: '2px solid #FDD835', boxShadow: 'inset 0 0 10px #FDD835, 0 0 6px #FDD835' }} />
+                )}
                 {tile.type === 'hole' && <PixelHole />}
                 {(tile.type === 'road' || tile.type === 'hidden_tank') && !isLava && <PixelRock />}
-                {tile.type === 'hidden_tank' && !isLava && selectedJob === 'geologist' && (
-                  <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-[#F9A825] opacity-80 animate-pulse shadow-[0_0_4px_#F9A825]" />
-                  </div>
-                )}
                 
                 {/* Volcanic Bomb Warning */}
                 {bombMap.has(`${tile.x},${tile.y}`) && (
@@ -2790,14 +2810,16 @@ export default function App() {
                disabled={
                  selectedJob === 'treasure_hunter' ||
                  (selectedJob === 'robot' && robotJumpUses <= 0) ||
-                 (selectedJob === 'geologist' && geologistScanUsed) ||
+                 (selectedJob === 'geologist' && geologistRepairUses <= 0) ||
                  (!skillAvailable && selectedJob !== 'robot' && selectedJob !== 'geologist') ||
                  isGameOver || isMoving
                }
                className={`flex-1 border-b-4 border-black text-[9px] font-black rounded-md flex flex-col items-center justify-center uppercase transition-all touch-manipulation
                  ${isRobotConvertActive
                    ? 'bg-orange-400 text-black translate-y-1 border-b-0 shadow-inner animate-pulse'
-                   : (skillAvailable || (selectedJob === 'robot' && robotJumpUses > 0) || (selectedJob === 'geologist' && !geologistScanUsed))
+                   : isGeologistRepairActive
+                   ? 'bg-yellow-300 text-black translate-y-1 border-b-0 shadow-inner animate-pulse'
+                   : (skillAvailable || (selectedJob === 'robot' && robotJumpUses > 0) || (selectedJob === 'geologist' && geologistRepairUses > 0))
                      ? 'bg-[#FFD600] text-black active:translate-y-1 active:border-b-0 shadow-lg'
                      : 'bg-zinc-800 text-white/20 border-b-0'}
                `}
@@ -2805,7 +2827,7 @@ export default function App() {
                <span>スキル</span>
                {selectedJob === 'robot' && <span className="text-[6px] opacity-70">岩場投下 x{robotJumpUses}</span>}
                {selectedJob === 'treasure_hunter' && <span className="text-[6px] opacity-70">跳躍 x{treasureHunterJumpUses}</span>}
-               {selectedJob === 'geologist' && <span className="text-[6px] opacity-70">地層スキャン {geologistScanUsed ? '済' : '1回'}</span>}
+               {selectedJob === 'geologist' && <span className="text-[6px] opacity-70">地盤修復 x{geologistRepairUses}</span>}
              </button>
              <button 
                onClick={setTank}
