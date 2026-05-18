@@ -310,7 +310,7 @@ const JOBS: JobDefinition[] = [
   },
   {
     id: 'geologist',
-    name: '地質学者（化石ハンター発掘家）',
+    name: '化石ハンター（発掘家）',
     role: 'フィールド発掘 / 地質調査',
     description: '化石と鉱脈を追い求めるゲストキャラ。崩壊地形でも怯まない発掘のプロ。',
     difficulty: 3,
